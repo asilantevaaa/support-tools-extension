@@ -36,6 +36,8 @@ linter, a clipboard history, an in-browser translator, and more.
 - **Password generator** — cryptographically secure, configurable charset, strength meter.
 - **Ticket notifications** — sound + desktop notification when a new item lands in a
   work queue, with a quiet-threshold and selectable tones (offscreen audio).
+- **Bilingual UI (RU / EN)** — a language switch in Settings with a lightweight runtime
+  translation layer.
 - **Quality-of-life** — password/date helpers, quick-paste templates, a URL shortener
   (YOURLS) client, a detachable floating panel with hotkeys, and a Dark-Reader-style
   dark theme for work sites.
@@ -128,6 +130,8 @@ _Placeholders — add your own images to `docs/`._
 - **Генератор паролей** — криптостойкий, настраиваемый набор символов, индикатор надёжности.
 - **Уведомления о новых заявках** — звук и всплывающее уведомление при появлении новой
   задачи в очереди, с порогом тишины и выбором звука (offscreen audio).
+- **Двуязычный интерфейс (RU / EN)** — переключатель языка в настройках с лёгким
+  слоем перевода на лету.
 - **Мелочи** — помощники по датам, быстрые пасты, клиент сокращателя ссылок (YOURLS),
   плавающая панель с горячими клавишами и тёмная тема для рабочих сайтов.
 
