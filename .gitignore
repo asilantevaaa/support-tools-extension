@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Builds / packaging
+dist/
+build/
+*.zip
+*.crx
+*.pem
+
+# Secrets / local config
+.env
+.env.*
+config.json
+config.local.json
+secrets.json
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log

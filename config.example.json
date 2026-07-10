@@ -1,0 +1,24 @@
+{
+  "_note": "These settings are entered through the extension's own Settings UI and stored in chrome.storage.local — they are NOT read from a file. This example only documents what is configurable. Never commit real secrets.",
+
+  "urlShortener_yourls": {
+    "server": "https://links.example.com",
+    "user": "YOUR_USER",
+    "password": "YOUR_PASSWORD",
+    "signature": "OPTIONAL_SIGNATURE_TOKEN"
+  },
+
+  "securityTrails": {
+    "apiKey": "YOUR_SECURITYTRAILS_API_KEY"
+  },
+
+  "anthropic": {
+    "apiKey": "YOUR_ANTHROPIC_API_KEY",
+    "model": "claude-3-5-sonnet-latest"
+  },
+
+  "siteBuilderAuth": {
+    "tokenEndpointEmail": "https://auth.example.com/auth/temporary_access/?email=",
+    "tokenEndpointUserId": "https://auth.example.com/auth/temporary_access/?user_id="
+  }
+}

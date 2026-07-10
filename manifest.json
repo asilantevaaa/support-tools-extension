@@ -1,0 +1,96 @@
+{
+  "manifest_version": 3,
+  "name": "Support Tools Pro",
+  "version": "3.60",
+  "description": "Инструменты технической поддержки",
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16":  "icon16.png",
+      "32":  "icon32.png",
+      "48":  "icon48.png",
+      "128": "icon128.png"
+    }
+  },
+  "icons": {
+    "16":  "icon16.png",
+    "32":  "icon32.png",
+    "48":  "icon48.png",
+    "128": "icon128.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "commands": {
+    "take-screenshot": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+S"
+      },
+      "description": "Сделать скриншот выделенной области"
+    },
+    "toggle-float": {
+      "suggested_key": {
+        "default": "Alt+Shift+P"
+      },
+      "description": "Открыть / закрыть плавающую панель на текущей странице"
+    },
+    "close-all-float": {
+      "suggested_key": {
+        "default": "Alt+Shift+O"
+      },
+      "description": "Закрыть плавающую панель во всех окнах"
+    }
+  },
+  "permissions": [
+    "clipboardWrite",
+    "activeTab",
+    "tabs",
+    "windows",
+    "storage",
+    "unlimitedStorage",
+    "scripting",
+    "contextMenus",
+    "notifications"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["editor.html", "editor.js", "editor-init.js", "fabric.min.js", "settings.html", "settings.js", "popup.html", "popup.js", "postpone-page.js"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["dark-theme.js"],
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": ["https://staff.example.com/*"],
+      "js": ["postpone-quick.js", "paste-quick.js"],
+      "run_at": "document_end",
+      "all_frames": false
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["linter-hybrid.js", "domain-watch.js"],
+      "run_at": "document_end",
+      "all_frames": true
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["float-panel.js"],
+      "run_at": "document_end",
+      "all_frames": false
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["clip-capture.js"],
+      "run_at": "document_end",
+      "all_frames": true
+    }
+  ]
+}

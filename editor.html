@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: transparent; overflow: hidden; font-family: -apple-system, 'Segoe UI', sans-serif; }
+
+        #canvas-wrapper {
+            position: absolute;
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.7);
+            z-index: 1;
+        }
+        /* затемнение вынесено на отдельный слой, чтобы перерисовка холста
+           не оставляла «хвостов» при перетаскивании объектов */
+        #dim-mask {
+            position: absolute;
+            box-shadow: 0 0 0 9999px rgba(0,0,0,0.55);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        #size-hint {
+            position: fixed; bottom: 72px; left: 50%; transform: translateX(-50%);
+            background: rgba(10,13,25,0.85); color: rgba(255,255,255,0.6);
+            font-size: 11px; padding: 3px 10px; border-radius: 20px;
+            pointer-events: none; opacity: 0; transition: opacity 0.2s;
+            font-family: monospace; letter-spacing: 0.5px;
+        }
+        #size-hint.show { opacity: 1; }
+
+        #toolbar {
+            position: fixed; bottom: 14px; left: 50%;
+            transform: translateX(-50%) translateY(80px); opacity: 0;
+            transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s;
+            display: flex; align-items: center; gap: 2px;
+            background: rgba(10, 13, 26, 0.97);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px; padding: 6px 8px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(79,106,255,0.15);
+            white-space: nowrap; z-index: 10;
+        }
+        #toolbar.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+        .tb-sep { width: 1px; height: 24px; background: rgba(255,255,255,0.1); margin: 0 4px; flex-shrink: 0; }
+
+        .tb-btn {
+            background: transparent; border: none; cursor: pointer;
+            color: rgba(255,255,255,0.65); border-radius: 8px;
+            width: 34px; height: 34px;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.15s, color 0.15s; flex-shrink: 0;
+        }
+        .tb-btn svg { width: 16px; height: 16px; pointer-events: none; }
+        .tb-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+        .tb-btn.active { background: #4f6aff; color: #fff; box-shadow: 0 0 0 2px rgba(79,106,255,0.3); }
+
+        .sz-btn {
+            background: transparent; border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 6px; color: rgba(255,255,255,0.5); cursor: pointer;
+            font-size: 11px; font-weight: 600; font-family: inherit;
+            width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+            transition: all 0.15s;
+        }
+        .sz-btn:hover { border-color: rgba(255,255,255,0.4); color: #fff; }
+        .sz-btn.active { background: rgba(79,106,255,0.3); border-color: #4f6aff; color: #fff; }
+
+        .color-wrap { position: relative; width: 28px; height: 28px; flex-shrink: 0; }
+        .color-wrap input[type="color"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+        .color-dot {
+            width: 28px; height: 28px; border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.3); background: #ff0000;
+            pointer-events: none; transition: border-color 0.15s;
+        }
+        .color-wrap:hover .color-dot { border-color: rgba(255,255,255,0.7); }
+
+        .color-preset {
+            width: 18px; height: 18px; border-radius: 4px; cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.2); flex-shrink: 0;
+            transition: transform 0.1s, border-color 0.15s; display: inline-block;
+        }
+        .color-preset:hover { transform: scale(1.2); border-color: rgba(255,255,255,0.6); }
+        .color-preset.active { border-color: #fff; transform: scale(1.2); }
+
+        .tb-close { color: #ef4444 !important; }
+        .tb-close:hover { background: rgba(239,68,68,0.15) !important; }
+        .tb-copy {
+            background: #4f6aff !important; color: #fff !important;
+            border-radius: 8px; padding: 0 12px !important; width: auto !important;
+            font-size: 12px; font-weight: 500; font-family: inherit; gap: 5px;
+        }
+        .tb-copy:hover { background: #3d58f0 !important; }
+        .tb-save { color: #22c55e !important; }
+        .tb-save:hover { background: rgba(34,197,94,0.12) !important; }
+    </style>
+</head>
+<body>
+    <div id="dim-mask"></div>
+    <div id="canvas-wrapper"><canvas id="c"></canvas></div>
+    <div id="size-hint"></div>
+
+    <div id="toolbar">
+        <button id="btn-cursor" class="tb-btn active" title="Курсор (V)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg>
+        </button>
+        <button id="btn-draw" class="tb-btn" title="Карандаш — фигуры автораспознаются (P)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        </button>
+        <button id="btn-line" class="tb-btn" title="Линия (L)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="19" x2="19" y2="5"/></svg>
+        </button>
+        <button id="btn-arrow" class="tb-btn" title="Стрелка (A)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="19" x2="19" y2="5"/><polyline points="9 5 19 5 19 15"/></svg>
+        </button>
+        <button id="btn-rect" class="tb-btn" title="Прямоугольник (R)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+        </button>
+        <button id="btn-blur" class="tb-btn" title="Размытие (B)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+        </button>
+        <button id="btn-text" class="tb-btn" title="Текст (T)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+        </button>
+        <!-- Параметры текста (видны только в режиме «Текст») -->
+        <div id="text-opts" style="display:none;align-items:center;gap:4px">
+            <select id="font-select" title="Шрифт текста" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;border-radius:6px;height:28px;font-size:11px;padding:0 4px;cursor:pointer;outline:none">
+                <option value="Arial" style="color:#000">Arial</option>
+                <option value="Georgia" style="color:#000">Georgia</option>
+                <option value="Times New Roman" style="color:#000">Times</option>
+                <option value="Courier New" style="color:#000">Courier</option>
+                <option value="Verdana" style="color:#000">Verdana</option>
+                <option value="Tahoma" style="color:#000">Tahoma</option>
+            </select>
+            <button id="btn-text-bg" class="tb-btn" title="Текст на белом фоне" style="width:auto;padding:0 8px;font-size:11px">Фон</button>
+        </div>
+        <button id="btn-number" class="tb-btn" title="Кружок-цифра (1-9). Номер выбирается в поле рядом">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><text x="12" y="16" font-size="11" text-anchor="middle" fill="currentColor" stroke="none">1</text></svg>
+        </button>
+        <!-- Выбор номера кружка (виден в режиме «Кружок-цифра» или когда выбран кружок) -->
+        <div id="number-opts" style="display:none;align-items:center;gap:4px">
+            <span style="font-size:11px;color:#bbb">№</span>
+            <select id="number-select" title="Номер кружка" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;border-radius:6px;height:28px;font-size:12px;padding:0 4px;cursor:pointer;outline:none">
+                <option value="1" style="color:#000">1</option>
+                <option value="2" style="color:#000">2</option>
+                <option value="3" style="color:#000">3</option>
+                <option value="4" style="color:#000">4</option>
+                <option value="5" style="color:#000">5</option>
+                <option value="6" style="color:#000">6</option>
+                <option value="7" style="color:#000">7</option>
+                <option value="8" style="color:#000">8</option>
+                <option value="9" style="color:#000">9</option>
+            </select>
+        </div>
+        <button id="btn-crop" class="tb-btn" title="Обрезать (C)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M2 6h14a2 2 0 0 1 2 2v14"/></svg>
+        </button>
+
+        <div class="tb-sep"></div>
+
+        <div style="display:flex;align-items:center;gap:3px">
+            <span class="color-preset" style="background:#1a1a1a;border-color:rgba(255,255,255,0.4)" data-color="#1a1a1a"></span>
+            <span class="color-preset active" style="background:#ff0000" data-color="#ff0000"></span>
+            <span class="color-preset" style="background:#ff9800" data-color="#ff9800"></span>
+            <span class="color-preset" style="background:#4caf50" data-color="#4caf50"></span>
+            <span class="color-preset" style="background:#2196f3" data-color="#2196f3"></span>
+            <span class="color-preset" style="background:#ffffff" data-color="#ffffff"></span>
+            <div class="color-wrap" title="Свой цвет">
+                <input type="color" id="color-picker" value="#ff0000">
+                <div id="color-dot" class="color-dot"></div>
+            </div>
+        </div>
+
+        <div class="tb-sep"></div>
+
+        <div style="display:flex;align-items:center;gap:3px">
+            <button class="sz-btn active" data-size="2">S</button>
+            <button class="sz-btn" data-size="4">M</button>
+            <button class="sz-btn" data-size="7">L</button>
+        </div>
+
+        <div class="tb-sep"></div>
+
+        <button id="btn-undo" class="tb-btn" title="Отменить (Ctrl+Z)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+        </button>
+        <button id="btn-redo" class="tb-btn" title="Повторить (Ctrl+Y)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        </button>
+        <button id="btn-delete" class="tb-btn" title="Удалить (Del)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </button>
+
+        <div class="tb-sep"></div>
+
+        <button id="btn-close" class="tb-btn tb-close" title="Закрыть (Esc)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <button id="btn-copy" class="tb-btn tb-copy" title="Копировать (Ctrl+Enter)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Копировать
+        </button>
+        <button id="btn-save" class="tb-btn tb-save" title="Сохранить PNG">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </button>
+    </div>
+
+    <script src="fabric.min.js"></script>
+    <script src="editor-init.js"></script>
+    <script src="editor.js?v=336"></script>
+</body>
+</html>

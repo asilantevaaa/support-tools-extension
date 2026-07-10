@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg:       #0b0e1a;
+            --surface:  #111827;
+            --surface2: #161d2e;
+            --border:   #1e2740;
+            --accent:   #4f6aff;
+            --accent-h: #3d58f0;
+            --glow:     rgba(79,106,255,0.12);
+            --text:     #e2e8f8;
+            --muted:    #5a6a8a;
+            --dim:      #2d3a55;
+            --ok:       #22c55e;
+            --warn:     #f59e0b;
+            --err:      #ef4444;
+            --r:        10px;
+        }
+        body {
+            width: 420px;
+            font-family: -apple-system, 'Segoe UI', sans-serif;
+            background: var(--bg); color: var(--text);
+            font-size: 13px; line-height: 1.5;
+            overflow-y: auto;
+            max-height: 100vh;
+        }
+
+        /* ── Дневная тема ── */
+        html.light {
+            --bg:      #f1f5f9; --surface:  #ffffff; --surface2: #f8fafc;
+            --border:  #e2e8f0; --accent:   #4f6aff; --accent-h: #3d58f0;
+            --glow:    rgba(79,106,255,0.08);
+            --text:    #1e293b; --muted:    #64748b; --dim:      #cbd5e1;
+            --ok:      #16a34a; --warn:     #d97706; --err:      #dc2626;
+        }
+        html.light .tabs-nav { background: var(--surface); }
+        html.light .header   { background: var(--surface); }
+
+        /* ── Detached (плавающая панель/окно) — заполняем всю ширину и СКРОЛЛИМ ── */
+        html.detached { height: 100%; overflow-y: auto; overscroll-behavior: contain; }
+        html.detached body {
+            width: 100%;
+            min-width: 380px;
+            min-height: 100%;
+            max-height: none;
+            overflow: visible;     /* скролл отдаём html, иначе во фрейме контент обрезается */
+            overscroll-behavior: contain;  /* колесо не «проваливается» на страницу staff позади */
+        }
+        html.detached .tab-content {
+            max-width: 860px;
+            margin: 0 auto;
+        }
+        html.detached .result-card {
+            max-height: 600px;
+        }
+
+        /* ── Header ── */
+        .header {
+            display: flex; align-items: center; gap: 10px;
+            padding: 12px 14px 10px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+        }
+        .logo {
+            width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
+            background: linear-gradient(135deg, #4f6aff 0%, #8b5cf6 100%);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .logo svg { width: 17px; height: 17px; }
+        .header-text { flex: 1; }
+        .header-title { font-size: 13px; font-weight: 600; }
+        .header-sub   { font-size: 11px; color: var(--muted); }
+        .btn-screenshot-header {
+            display: flex; align-items: center; gap: 5px;
+            background: var(--surface2); border: 1px solid var(--border);
+            color: var(--muted); border-radius: 8px; padding: 6px 10px;
+            font-size: 11px; cursor: pointer; font-family: inherit;
+            white-space: nowrap; transition: all 0.15s;
+        }
+        .btn-screenshot-header:hover { border-color: var(--accent); color: var(--accent); }
+        .btn-screenshot-header svg { width: 13px; height: 13px; }
+
+        /* Крестик «Закрыть всё» — в правом верхнем углу, красный при наведении */
+        #close-all-btn { margin-left: 6px; padding: 6px; flex: none; }
+        #close-all-btn svg { width: 15px; height: 15px; }
+        #close-all-btn:hover { border-color: var(--err); color: var(--err); background: rgba(239,68,68,0.1); }
+
+        .btn-gear-header {
+            display: flex; align-items: center; gap: 5px;
+            background: var(--surface2); border: 1px solid var(--border);
+            color: var(--muted); border-radius: 8px; padding: 6px 10px;
+            font-size: 11px; cursor: pointer; font-family: inherit;
+            white-space: nowrap; transition: all 0.15s; flex-shrink: 0;
+        }
+        .btn-gear-header:hover { border-color: var(--accent); color: var(--accent); }
+        .btn-gear-header.active { border-color: var(--accent); color: var(--accent); background: rgba(79,106,255,0.1); }
+        .btn-gear-header svg { width: 13px; height: 13px; }
+
+        /* ── Tabs ── */
+        .tabs-nav {
+            display: flex; flex-wrap: wrap; background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 2px;
+        }
+        /* Стиль «одна строка» — горизонтальный скролл */
+        .tabs-nav.tabs-scroll {
+            flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; scroll-behavior: smooth;
+        }
+        .tabs-nav.tabs-scroll::-webkit-scrollbar { height: 3px; }
+        .tabs-nav.tabs-scroll::-webkit-scrollbar-track { background: transparent; }
+        .tabs-nav.tabs-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+        .tab-btn {
+            background: none; border: none; color: var(--muted);
+            padding: 9px 11px; font-size: 12px; cursor: pointer;
+            white-space: nowrap; border-bottom: 2px solid transparent;
+            font-family: inherit; transition: color 0.15s;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .tab-btn svg { width: 12px; height: 12px; flex-shrink: 0; }
+        .tab-btn:hover { color: var(--text); }
+        .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+        /* ── Content ── */
+        .tab-content { display: none; padding: 12px 14px 14px; }
+        .tab-content.active { display: block; }
+
+        /* ── Inputs ── */
+        .row { display: flex; gap: 8px; margin-bottom: 9px; }
+        input[type="text"], input[type="date"], input[type="number"], select {
+            width: 100%; background: var(--surface2); color: var(--text);
+            border: 1px solid var(--border); border-radius: var(--r);
+            padding: 8px 11px; font-size: 13px; outline: none; font-family: inherit;
+            transition: border-color 0.15s;
+        }
+        input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--glow); }
+        select {
+            cursor: pointer; appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235a6a8a' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px;
+        }
+        .btn {
+            border: none; border-radius: var(--r); padding: 8px 14px;
+            font-size: 13px; font-family: inherit; cursor: pointer; font-weight: 500;
+            transition: background 0.15s, transform 0.1s;
+            display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn-primary { background: var(--accent); color: #fff; width: 100%; margin-bottom: 9px; }
+        .btn-primary:hover { background: var(--accent-h); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn svg { width: 13px; height: 13px; }
+
+        /* ── Result card ── */
+        .result-card {
+            background: var(--surface2); border: 1px solid var(--border);
+            border-radius: var(--r); display: none; overflow-y: auto;
+            max-height: 400px;
+        }
+        .result-card.visible { display: block; }
+        .card-header {
+            display: flex; align-items: center; gap: 10px;
+            padding: 9px 12px; border-bottom: 1px solid var(--border);
+            background: rgba(79,106,255,0.07);
+        }
+        .card-domain { font-size: 14px; font-weight: 600; }
+        .card-sub { font-size: 11px; color: var(--muted); }
+        .result-row {
+            display: flex; align-items: flex-start;
+            padding: 7px 12px; border-bottom: 1px solid var(--border);
+            gap: 8px;
+        }
+        .result-row:last-child { border-bottom: none; }
+        .r-label { color: var(--muted); font-size: 11px; width: 130px; flex-shrink: 0; padding-top: 1px; }
+        .r-value { color: var(--text); font-size: 12px; flex: 1; word-break: break-all; }
+        .r-value.mono { font-family: monospace; font-size: 11px; }
+        .r-value.ns   { display: flex; flex-direction: column; gap: 1px; }
+        /* иконка копирования у полей результата */
+        .copy-ico { display: inline-flex; align-items: center; vertical-align: middle; margin-left: 6px;
+            border: none; background: none; color: var(--muted); cursor: pointer; padding: 1px; border-radius: 4px; flex: none; }
+        .copy-ico:hover { color: var(--accent); }
+        .copy-ico.ok { color: var(--ok); }
+        .result-row { align-items: center; }
+
+        /* ── Plain result ── */
+        .result-plain {
+            background: var(--surface2); border: 1px solid var(--border);
+            border-radius: var(--r); padding: 9px 12px; display: none;
+            font-size: 12px; line-height: 1.6;
+        }
+        .result-plain.visible { display: block; }
+
+        /* ── Badges ── */
+        .badge {
+            display: inline-block; font-size: 10px; padding: 2px 7px;
+            border-radius: 20px; font-weight: 600;
+        }
+        .ok   { background: rgba(34,197,94,.15);  color: #22c55e; }
+        .warn { background: rgba(245,158,11,.15); color: #f59e0b; }
+        .err  { background: rgba(239,68,68,.15);  color: #ef4444; }
+        .status-list { display: flex; flex-wrap: wrap; gap: 3px; }
+
+        /* ── Shorten ── */
+        .shorten-out {
+            background: var(--surface2); border: 1px solid var(--border);
+            border-radius: var(--r); padding: 9px 12px; display: none;
+            align-items: center; justify-content: space-between; gap: 8px;
+        }
+        .shorten-out.visible { display: flex; }
+        .shorten-url { font-size: 14px; color: var(--accent); font-weight: 600; word-break: break-all; }
+        .copied-tag  { font-size: 10px; color: var(--ok); white-space: nowrap; flex-shrink: 0; }
+
+        /* ── Check-Host nodes ── */
+        .nodes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 8px; }
+        .node-card {
+            background: var(--surface2); border: 1px solid var(--border);
+            border-radius: 8px; padding: 7px 9px;
+        }
+        .node-loc { font-size: 11px; font-weight: 500; }
+        .node-ip  { font-size: 10px; color: var(--muted); font-family: monospace; margin-top: 1px; }
+        .node-st  { margin-top: 3px; }
+
+        /* ── Dates ── */
+        .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 9px; }
+        .section-lbl {
+            font-size: 10px; color: var(--muted); font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            margin-bottom: 6px; margin-top: 12px;
+        }
+        .section-lbl:first-child { margin-top: 0; }
+
+/* ── Генератор паролей ── */
+        .pg-check {
+            display: flex; align-items: center; gap: 9px;
+            padding: 8px 11px; margin-bottom: 6px; cursor: pointer;
+            background: var(--surface2); border: 1px solid var(--border);
+            border-radius: 8px; transition: border-color .15s;
+        }
+        .pg-check:hover { border-color: var(--dim); }
+        .pg-check input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; flex: none; }
+        .pg-check .pg-lbl { flex: 1; font-size: 13px; }
+        .pg-check .pg-hint { font-size: 11px; color: var(--muted); font-family: monospace; }
+        .pg-item {
+            display: flex; align-items: center; gap: 8px;
+            padding: 9px 11px; background: var(--surface2);
+            border: 1px solid var(--border); border-radius: 8px;
+        }
+        .pg-item code { flex: 1; font-family: monospace; font-size: 14px; word-break: break-all; color: var(--text); }
+        .pg-copy {
+            flex: none; background: var(--surface); border: 1px solid var(--border);
+            color: var(--muted); border-radius: 6px; padding: 4px 8px; cursor: pointer;
+            display: flex; align-items: center; transition: all .15s;
+        }
+        .pg-copy:hover { border-color: var(--accent); color: var(--accent); }
+        .pg-bar { height: 6px; border-radius: 4px; background: var(--surface2); overflow: hidden; }
+        .pg-bar > div { height: 100%; transition: width .2s, background .2s; }
+
+/* ── Буфер обмена ── */
+        .clip-subtabs { display: flex; gap: 6px; margin-bottom: 10px; }
+        .clip-subbtn {
+            flex: 1; padding: 7px 0; border: 1px solid var(--border); background: var(--surface2);
+            color: var(--muted); border-radius: 8px; font-size: 12px; font-weight: 500;
+            cursor: pointer; font-family: inherit; transition: all .15s;
+        }
+        .clip-subbtn:hover { color: var(--text); }
+        .clip-subbtn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+        #clip-paste {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 14px 12px; border: 1.5px dashed var(--border); border-radius: 10px;
+            color: var(--muted); font-size: 12px; cursor: pointer; text-align: center;
+            transition: all .15s; outline: none;
+        }
+        #clip-paste:hover, #clip-paste:focus { border-color: var(--accent); color: var(--text); }
+        .clip-item {
+            display: flex; align-items: flex-start; gap: 9px; padding: 9px 10px;
+            background: var(--surface2); border: 1px solid var(--border); border-radius: 9px;
+        }
+        .clip-item img {
+            width: 56px; height: 56px; object-fit: cover; border-radius: 6px;
+            border: 1px solid var(--border); cursor: pointer; flex: none; background: #fff;
+        }
+        .clip-item .clip-body { flex: 1; min-width: 0; }
+        .clip-item .clip-txt {
+            font-size: 12px; color: var(--text); white-space: pre-wrap; word-break: break-word;
+            max-height: 58px; overflow: hidden; line-height: 1.4;
+        }
+        .clip-item .clip-meta { font-size: 10px; color: var(--muted); margin-top: 4px; }
+        .clip-item .clip-acts { display: flex; flex-direction: row; gap: 5px; flex: none; align-self: flex-start; }
+        .clip-item .clip-acts button {
+            background: var(--surface); border: 1px solid var(--border); color: var(--muted);
+            border-radius: 6px; width: 26px; height: 26px; padding: 0; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; flex: none; transition: all .15s;
+        }
+        .clip-item .clip-acts button:hover { border-color: var(--accent); color: var(--accent); }
+        .clip-item .clip-acts .clip-del:hover { border-color: var(--err); color: var(--err); }
+
+/* ── DNS Propagation ── */
+        .prop-row {
+            display: flex; align-items: center; gap: 8px;
+            padding: 6px 10px; border-bottom: 1px solid var(--border);
+            background: var(--surface2); border-radius: 0;
+        }
+        .prop-row:first-child { border-radius: 8px 8px 0 0; }
+        .prop-row:last-child  { border-bottom: none; border-radius: 0 0 8px 8px; }
+        .prop-row:only-child  { border-radius: 8px; }
+        .prop-flag { font-size: 14px; flex-shrink: 0; width: 20px; text-align: center; }
+        .prop-loc  { flex: 1; font-size: 11px; color: var(--text); }
+        .prop-name { font-size: 10px; color: var(--muted); }
+        .prop-ips  { font-family: monospace; font-size: 11px; color: var(--accent); text-align: right; flex-shrink: 0; }
+        .prop-status { flex-shrink: 0; width: 18px; text-align: center; }
+        .prop-ok  { color: var(--ok); font-size: 14px; }
+        .prop-err { color: var(--err); font-size: 14px; }
+
+        /* ── Gear button (in tabs) ── */
+        .btn-gear {
+            background: none; border: none; color: var(--muted); cursor: pointer;
+            padding: 9px 11px; margin-left: auto; flex-shrink: 0;
+            display: none; align-items: center; transition: all 0.15s;
+            position: relative;
+        }
+        .btn-gear:hover { color: var(--accent); }
+        .btn-gear svg { width: 16px; height: 16px; }
+        .btn-gear.active { color: var(--accent); background: rgba(79,106,255,0.1); border-radius: 8px; }
+
+        /* ── Tab settings panel ── */
+        #tab-settings-panel {
+            display: none; background: var(--surface);
+            border-bottom: 1px solid var(--border); padding: 10px 14px;
+        }
+        #tab-settings-panel.open { display: block; }
+        .ts-title { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+        .ts-item {
+            display: flex; align-items: center; gap: 8px;
+            padding: 5px 0; border-bottom: 1px solid var(--border);
+            cursor: grab; user-select: none;
+        }
+        .ts-item:last-child { border-bottom: none; }
+        .ts-item.dragging { opacity: 0.4; }
+        .ts-drag { color: var(--muted); font-size: 14px; padding: 0 2px; }
+        .ts-label { flex: 1; font-size: 12px; color: var(--text); }
+        .ts-toggle {
+            width: 28px; height: 16px; background: var(--dim); border-radius: 8px;
+            position: relative; cursor: pointer; transition: background 0.15s; flex-shrink: 0;
+        }
+        .ts-toggle.on { background: var(--accent); }
+        .ts-toggle::after {
+            content: ''; position: absolute; width: 12px; height: 12px;
+            background: #fff; border-radius: 50%; top: 2px; left: 2px; transition: left 0.15s;
+        }
+        .ts-toggle.on::after { left: 14px; }
+
+        /* ── Global error banner ── */
+        #global-error-banner {
+            display: none; background: rgba(239,68,68,0.1); border-bottom: 1px solid rgba(239,68,68,0.3);
+            padding: 10px 14px; font-size: 12px; color: var(--err); line-height: 1.4;
+        }
+        #global-error-banner a { color: var(--err); font-weight: 600; }
+        #error-details { font-size: 11px; color: var(--muted); margin-top: 6px; font-family: monospace; max-height: 60px; overflow-y: auto; }
+        #error-close { position: absolute; right: 14px; top: 10px; background: none; border: none; color: var(--muted); cursor: pointer; font-size: 18px; padding: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; }
+        #error-close:hover { color: var(--err); }
+
+        /* ── Punycode copy feedback ── */
+        #punycode-copy-ok { display:none; font-size:11px; color:var(--ok); margin-top:4px; }
+
+        /* ── Spinner ── */
+        .spin {
+            display: inline-block; width: 11px; height: 11px;
+            border: 2px solid var(--dim); border-top-color: var(--accent);
+            border-radius: 50%; animation: sp 0.6s linear infinite;
+        }
+        @keyframes sp { to { transform: rotate(360deg); } }
+
+        /* ── Input clear (×) button ── */
+        .input-clearable { position: relative; flex: 1; }
+        .input-clearable input { width: 100%; padding-right: 26px; }
+        .input-clear {
+            position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+            background: none; border: none; color: var(--muted); cursor: pointer;
+            font-size: 16px; line-height: 1; padding: 0; display: none;
+            width: 18px; height: 18px; align-items: center; justify-content: center;
+            border-radius: 50%; transition: color .15s, background .15s;
+        }
+        .input-clear:hover { color: var(--text); background: var(--border); }
+
+        /* ── Detach / open-as-window button ── */
+        .btn-detach {
+            background: none; border: none; color: var(--muted); cursor: pointer;
+            padding: 7px 8px; display: flex; align-items: center; border-radius: 8px;
+            transition: color .15s, background .15s; flex-shrink: 0;
+        }
+        .btn-detach:hover { color: var(--accent); background: var(--glow); }
+        .btn-detach svg { width: 14px; height: 14px; }
+
+        /* ── ST API-key card ── */
+        .st-key-card {
+            margin-top: 12px; padding: 14px;
+            background: var(--surface2); border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+        .st-key-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+        .st-key-title { display: flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 600; color: var(--text); }
+        .st-key-title svg { color: var(--accent); flex: none; }
+        .st-key-badge {
+            font-size: 10px; font-weight: 600; padding: 3px 9px; border-radius: 20px;
+            background: rgba(239,68,68,.15); color: #ef4444; white-space: nowrap;
+        }
+        .st-key-badge.ok { background: rgba(34,197,94,.15); color: #22c55e; }
+        .st-key-field { position: relative; margin-bottom: 9px; }
+        .st-key-field input {
+            width: 100%; box-sizing: border-box; padding: 10px 38px 10px 12px;
+            background: var(--surface); border: 1px solid var(--border); color: var(--text);
+            border-radius: 9px; font-size: 13px; font-family: 'Consolas', monospace;
+            outline: none; transition: border-color .15s, box-shadow .15s;
+        }
+        .st-key-field input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--glow); }
+        .st-key-field button {
+            position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+            background: none; border: none; color: var(--muted); cursor: pointer;
+            padding: 5px; display: flex; border-radius: 6px; transition: color .15s, background .15s;
+        }
+        .st-key-field button:hover { color: var(--accent); background: var(--glow); }
+        .st-key-actions { display: flex; gap: 8px; }
+        .st-key-actions .btn { margin: 0; flex: 1; padding: 9px; font-size: 12.5px; border-radius: 9px; }
+        .st-key-clear {
+            flex: none !important; background: var(--surface); border: 1px solid var(--border);
+            color: var(--muted);
+        }
+        .st-key-clear:hover { color: #ef4444; border-color: rgba(239,68,68,.4); }
+        .st-key-ok { font-size: 11px; color: var(--ok); margin-top: 8px; min-height: 14px; text-align: center; }
+        .st-key-help { margin-top: 10px; }
+        .st-key-help summary {
+            font-size: 11px; color: var(--muted); cursor: pointer; user-select: none;
+            list-style: none; display: inline-flex; align-items: center; gap: 4px;
+        }
+        .st-key-help summary::before { content: '▸'; transition: transform .15s; }
+        .st-key-help[open] summary::before { transform: rotate(90deg); }
+        .st-key-help summary:hover { color: var(--text); }
+        .st-key-help ol { margin: 8px 0 0; padding-left: 18px; font-size: 11px; color: var(--muted); line-height: 1.7; }
+        .st-key-help ol b { color: var(--text); }
+    </style>
+</head>
+<body>
+
+<!-- Глобальная ошибка -->
+<div id="global-error-banner" style="position: relative">
+    <div style="font-weight: 600; margin-bottom: 4px">⚠ Ошибка расширения</div>
+    <div id="error-details"></div>
+    <button id="error-close">×</button>
+</div>
+
+<!-- Header with screenshot button -->
+<header class="header">
+    <div class="logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    </div>
+    <div class="header-text">
+        <div class="header-title">Support Tools</div>
+    </div>
+    <button class="btn-detach" id="btn-detach" title="Открепить — плавающая панель поверх страницы">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+    </button>
+    <button class="btn-gear-header" id="btn-gear-header" title="Настройки вкладок: порядок и видимость">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+    <select id="screenshot-delay" title="Задержка перед скриншотом" style="height: 30px; width: 58px; border-radius: 8px; border: 1px solid var(--border, #d0d0d0); background: var(--surface2, #f5f5f5); color: var(--text, #333); font-size: 12px; padding: 0 4px 0 8px; cursor: pointer; text-align: center; -webkit-appearance: none; appearance: none;">
+        <option value="0">0 сек</option>
+        <option value="2000">2 сек</option>
+        <option value="3000">3 сек</option>
+        <option value="5000">5 сек</option>
+    </select>
+    <button class="btn-screenshot-header" id="screenshot-btn" title="Сделать скриншот и отредактировать его (Ctrl+Shift+S)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        Скриншот
+    </button>
+    <button class="btn-screenshot-header" id="close-all-btn" title="Закрыть все плавающие панели и редакторы во всех вкладках">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+</header>
+
+<!-- Tabs -->
+<nav class="tabs-nav">
+    <button class="tab-btn active" data-target="tab-whois">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Whois
+    </button>
+    <button class="tab-btn" data-target="tab-dns">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> DNS
+    </button>
+    <button class="tab-btn" data-target="tab-shorten">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Ссылка
+    </button>
+    <button class="tab-btn" data-target="tab-checkhost">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> IP / Check
+    </button>
+    <button class="tab-btn" data-target="tab-date">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Даты
+    </button>
+    <button class="tab-btn" data-target="tab-punycode">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg> Punycode
+    </button>
+    <button class="tab-btn" data-target="tab-pass">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><circle cx="12" cy="16" r="1"/></svg> Пароль
+    </button>
+    <button class="tab-btn" data-target="tab-translate">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h7M9 3v2c0 4-2 7-6 8"/><path d="M5 9c0 3 3 5 7 6"/><path d="M12 20l4-9 4 9M13.5 17h5"/></svg> Перевод
+    </button>
+    <button class="tab-btn" data-target="tab-clip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg> Буфер
+    </button>
+    <button class="tab-btn" data-target="tab-st">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> ST
+    </button>
+    <button class="tab-btn" data-target="tab-scanner">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg> Домены
+    </button>
+    <button class="tab-btn" data-target="tab-ssl">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> SSL
+    </button>
+    <button class="tab-btn" data-target="tab-ai" style="display:none !important">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> ИИ
+    </button>
+    <button class="tab-btn" data-target="tab-dnstpl">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><line x1="2" y1="10" x2="22" y2="10"/></svg> Записи
+    </button>
+    <button class="tab-btn" data-target="tab-auth">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> 2FA
+    </button>
+    <button class="tab-btn" data-target="tab-l2">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Почта
+    </button>
+
+</nav>
+
+<!-- WHOIS -->
+<div id="tab-whois" class="tab-content active">
+    <div class="row">
+        <input type="text" id="whois-input" placeholder="example.com">
+        <button id="whois-btn" class="btn btn-primary" style="width:auto;margin:0;white-space:nowrap">Запрос</button>
+    </div>
+    <!-- Быстрые ссылки -->
+    <div style="display:flex;gap:8px;margin-bottom:9px">
+        <button id="whois-open-btn" class="btn" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--muted);white-space:nowrap" title="Открыть на whois.com">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            whois.com
+        </button>
+        <button id="whois-copy-link-btn" class="btn" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--muted);white-space:nowrap" title="Копировать ссылку">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            Скопировать
+        </button>
+    </div>
+    <div id="whois-result" class="result-card"></div>
+    <!-- Диагностика -->
+    <div id="whois-debug" style="display:none;margin-top:8px">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Диагностика источников</div>
+        <div id="whois-debug-body" style="font-family:monospace;font-size:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px;color:var(--muted);max-height:200px;overflow-y:auto;white-space:pre-wrap;line-height:1.6"></div>
+    </div>
+</div>
+
+<!-- DNS -->
+<div id="tab-dns" class="tab-content">
+    <!-- DNS query pane -->
+    <div id="dns-pane-query">
+        <div class="row">
+            <input type="text" id="dns-input" placeholder="example.com" style="flex:1">
+            <select id="dns-type" style="width:78px;flex:none">
+                <option>A</option><option>AAAA</option><option>MX</option>
+                <option>TXT</option><option>NS</option><option>CNAME</option><option>SOA</option><option>DMARC</option>
+            </select>
+        </div>
+        <div class="row" style="margin-bottom:9px">
+            <button id="dns-btn" class="btn btn-primary" style="flex:1;margin:0">Запрос</button>
+            <button id="dns-copy-link-btn" class="btn" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--muted);white-space:nowrap" title="Скопировать ссылку на dnschecker.org">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                Ссылка DNSChecker
+            </button>
+        </div>
+        <div id="dns-result" class="result-card"></div>
+        <div style="margin-top:10px">
+            <button id="dns-prop-btn" class="btn" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-size:11.5px">
+                Проверить распространение (несколько NS)
+            </button>
+            <div id="dns-prop-result" class="result-card" style="margin-top:6px"></div>
+        </div>
+    </div>
+
+
+</div>
+
+<!-- SHORTEN -->
+<div id="tab-shorten" class="tab-content">
+    <!-- Форма логина YOURLS (показывается если нет сохранённых данных) -->
+    <div id="yourls-login-form" style="display:none;margin-bottom:12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:12px">
+        <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:10px">
+            <svg style="width:14px;height:14px;vertical-align:-2px;margin-right:4px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Настройка
+        </div>
+        <input type="text" id="yourls-user" placeholder="Логин" style="margin-bottom:8px">
+        <div style="position:relative;margin-bottom:8px">
+            <input type="text" id="yourls-pass" placeholder="Пароль">
+            <span id="yourls-pass-toggle" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--muted);font-size:11px;user-select:none">скрыть</span>
+        </div>
+        <input type="text" id="yourls-server" placeholder="Сервер" style="margin-bottom:8px">
+        <input type="text" id="yourls-sig" placeholder="Сигнатура (опционально)" style="margin-bottom:8px">
+        <button id="yourls-save-btn" class="btn btn-primary" style="margin-bottom:0">Сохранить</button>
+    </div>
+
+    <input type="text" id="shorten-input" placeholder="https://example.com/ru/docs/..." style="margin-bottom:9px">
+    <button id="shorten-btn" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        Сократить и скопировать
+    </button>
+    <div id="shorten-result" class="shorten-out">
+        <span id="shorten-url" class="shorten-url"></span>
+        <span class="copied-tag">✓ скопировано</span>
+    </div>
+    <div id="shorten-error" class="result-plain" style="color:var(--err)"></div>
+    <div style="text-align:right;margin-top:6px">
+        <span id="yourls-settings-link" style="font-size:10px;color:var(--muted);cursor:pointer;text-decoration:underline">⚙ Настройки YOURLS</span>
+    </div>
+
+    <div id="ticket-link-box" style="display:none;margin-top:14px;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px">Ссылка на тикет для клиента (example.com):</div>
+        <div style="display:flex;gap:6px;align-items:center">
+            <input type="text" id="ticket-link-url" readonly style="flex:1;font-size:12px">
+            <button id="ticket-link-copy" class="btn btn-primary" style="width:auto;margin:0;white-space:nowrap;padding:7px 12px">Копировать</button>
+        </div>
+        <div id="ticket-link-ok" style="display:none;font-size:11px;color:var(--ok);margin-top:5px">✓ Ссылка для клиента скопирована</div>
+    </div>
+</div>
+
+<!-- IP / CHECK-HOST -->
+<div id="tab-checkhost" class="tab-content">
+    <div class="row">
+        <input type="text" id="checkhost-input" placeholder="203.0.113.5 или example.com" style="flex:1">
+        <select id="checkhost-type" style="width:82px;flex:none">
+            <option value="info">Info</option>
+            <option value="http">HTTP</option>
+            <option value="ping">Ping</option>
+            <option value="tcp">TCP</option>
+        </select>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:9px">
+        <button id="checkhost-btn" class="btn btn-primary" style="flex:1;margin:0">Проверить</button>
+        <button id="checkhost-copy-link-btn" class="btn" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--muted);white-space:nowrap" title="Копировать ссылку на check-host">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            check-host
+        </button>
+    </div>
+    <div id="checkhost-info" class="result-card"></div>
+    <div id="checkhost-status" class="result-plain" style="display:none"></div>
+    <div id="checkhost-nodes" class="nodes-grid"></div>
+</div>
+
+<!-- DATES -->
+<div id="tab-date" class="tab-content">
+    <div class="section-lbl">Прибавить / отнять дни</div>
+    <div class="grid2">
+        <input type="date" id="date-start">
+        <input type="number" id="date-days" placeholder="Количество дней">
+    </div>
+    <button id="date-calc-btn" class="btn btn-primary">Рассчитать</button>
+    <div id="date-calc-result" class="result-plain" style="margin-bottom:12px"></div>
+
+    <div class="section-lbl">Разница между датами</div>
+    <div class="grid2">
+        <input type="date" id="date-diff-1">
+        <input type="date" id="date-diff-2">
+    </div>
+    <button id="date-diff-btn" class="btn btn-primary">Считать дни</button>
+    <div id="date-diff-result" class="result-plain"></div>
+</div>
+
+<!-- SECURITY TRAILS -->
+<div id="tab-st" class="tab-content">
+    <div class="row">
+        <input type="text" id="st-input" placeholder="example.com" style="flex:1">
+        <select id="st-mode" style="width:110px;flex:none">
+            <option value="subdomains">Поддомены</option>
+            <option value="hist_a">История A</option>
+            <option value="hist_aaaa">История AAAA</option>
+            <option value="hist_mx">История MX</option>
+            <option value="hist_ns">История NS</option>
+            <option value="hist_soa">История SOA</option>
+            <option value="hist_txt">История TXT</option>
+        </select>
+    </div>
+    <button id="st-btn" class="btn btn-primary">Запросить SecurityTrails</button>
+    <div id="st-result" class="result-card"></div>
+
+    <!-- API-ключ SecurityTrails -->
+    <div class="st-key-card">
+        <div class="st-key-head">
+            <div class="st-key-title">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+                API-ключ SecurityTrails
+            </div>
+            <span id="st-key-status" class="st-key-badge">не задан</span>
+        </div>
+        <div class="st-key-field">
+            <input type="password" id="st-key-input" placeholder="Вставьте свой API-ключ" autocomplete="off" spellcheck="false">
+            <button id="st-key-eye" type="button" title="Показать/скрыть">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+        </div>
+        <div class="st-key-actions">
+            <button id="st-key-save" class="btn btn-primary">Сохранить ключ</button>
+            <button id="st-key-reset" class="btn st-key-clear">Удалить</button>
+        </div>
+        <div id="st-key-ok" class="st-key-ok"></div>
+        <div id="st-signup-hint" style="font-size:11px;color:var(--muted);margin-top:6px;display:none">
+            Нет ключа? <a href="https://securitytrails.com/app/signup" target="_blank" style="color:var(--accent)">Зарегистрируйтесь бесплатно</a> — 50 запросов/месяц, VPN обязателен.
+        </div>
+        <details class="st-key-help">
+            <summary>Как получить ключ?</summary>
+            <ol>
+                <li>Включите VPN (сервис недоступен из РФ).</li>
+                <li>Зарегистрируйтесь на <b>securitytrails.com</b> (бесплатный план).</li>
+                <li>Подтвердите почту и войдите.</li>
+                <li><b>Account → API Keys</b> — скопируйте ключ.</li>
+                <li>Вставьте сюда. Ключ хранится только локально на вашем устройстве.</li>
+            </ol>
+        </details>
+    </div>
+</div>
+
+<!-- PUNYCODE -->
+<div id="tab-punycode" class="tab-content">
+    <input type="text" id="punycode-input" placeholder="домен.рф → xn--  /  xn-- → кириллица" style="margin-bottom:9px">
+    <button id="punycode-btn" class="btn btn-primary">Конвертировать и скопировать</button>
+    <div style="font-size:10px;color:var(--muted);margin-top:4px;margin-bottom:2px">Кириллица → Punycode (xn--) и обратно — автоматически</div>
+    <div id="punycode-result" class="result-plain"></div>
+    <div id="punycode-copy-ok">✓ Скопировано в буфер</div>
+</div>
+
+<!-- PASSWORD GENERATOR -->
+<div id="tab-pass" class="tab-content">
+    <div class="section-lbl">Настройки генератора</div>
+    <label class="pg-check"><input type="checkbox" id="pg-digits" checked><span class="pg-lbl">Цифры</span><span class="pg-hint">0–9</span></label>
+    <label class="pg-check"><input type="checkbox" id="pg-upper" checked><span class="pg-lbl">Прописные буквы</span><span class="pg-hint">A–Z</span></label>
+    <label class="pg-check"><input type="checkbox" id="pg-lower" checked><span class="pg-lbl">Строчные буквы</span><span class="pg-hint">a–z</span></label>
+    <label class="pg-check"><input type="checkbox" id="pg-special" checked><span class="pg-lbl">Спец. символы</span><span class="pg-hint">%*)?@#$~</span></label>
+    <label class="pg-check"><input type="checkbox" id="pg-noambig"><span class="pg-lbl">Без похожих символов</span><span class="pg-hint">0 O 1 l I</span></label>
+
+    <div style="display:flex;align-items:center;gap:10px;margin:12px 0 6px">
+        <span style="font-size:12px;color:var(--muted);white-space:nowrap">Длина</span>
+        <input type="range" id="pg-length-range" min="4" max="64" value="12" style="flex:1;accent-color:var(--accent)">
+        <input type="number" id="pg-length" min="1" max="256" value="12" style="width:64px;flex:none;text-align:center">
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <span style="font-size:12px;color:var(--muted);white-space:nowrap">Сколько паролей</span>
+        <input type="number" id="pg-count" min="1" max="50" value="1" style="width:64px;flex:none;text-align:center">
+    </div>
+
+    <button id="pg-gen" class="btn btn-primary btn-block">Создать пароль</button>
+    <div id="pg-strength" style="display:none;margin-top:10px"></div>
+    <div id="pg-out" style="margin-top:8px;display:flex;flex-direction:column;gap:6px"></div>
+    <div id="pg-copy-ok" style="display:none;font-size:11px;color:var(--ok);margin-top:6px;text-align:center">✓ Скопировано</div>
+</div>
+
+<!-- TRANSLATE -->
+<div id="tab-translate" class="tab-content">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+        <select id="tr-from" style="flex:1;margin:0"></select>
+        <button id="tr-swap" class="btn" title="Поменять языки местами" style="flex:none;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);color:var(--muted)">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+        </button>
+        <select id="tr-to" style="flex:1;margin:0"></select>
+    </div>
+    <textarea id="tr-src" placeholder="Текст для перевода…" rows="4" style="width:100%;box-sizing:border-box;resize:vertical;font-family:inherit;font-size:13px;padding:9px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);outline:none;margin-bottom:8px"></textarea>
+    <button id="tr-go" class="btn btn-primary btn-block">Перевести</button>
+    <div id="tr-status" style="font-size:11px;color:var(--muted);margin-top:8px;display:none"></div>
+    <div id="tr-out-wrap" style="margin-top:8px;display:none">
+        <div style="position:relative">
+            <div id="tr-out" class="result-card visible" style="white-space:pre-wrap;padding-right:34px"></div>
+            <button id="tr-copy" class="btn" title="Копировать перевод" style="position:absolute;top:6px;right:6px;flex:none;padding:4px 7px;background:var(--surface);border:1px solid var(--border);color:var(--muted)">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+        </div>
+        <div id="tr-copy-ok" style="display:none;font-size:11px;color:var(--ok);margin-top:6px;text-align:center">✓ Скопировано</div>
+    </div>
+
+    <div style="border-top:1px solid var(--border);margin:14px 0 10px"></div>
+    <div class="section-lbl" style="margin-top:0">Перевод всей страницы</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Переводит текст открытой вкладки на язык из поля «В» — прямо на странице.</div>
+    <div style="display:flex;gap:8px">
+        <button id="tr-page" class="btn btn-primary" style="flex:1;margin:0">Перевести страницу</button>
+        <button id="tr-page-restore" class="btn" style="flex:none;background:var(--surface2);border:1px solid var(--border);color:var(--text)" title="Вернуть оригинал">Оригинал</button>
+    </div>
+    <div id="tr-page-status" style="font-size:11px;color:var(--muted);margin-top:8px;display:none"></div>
+</div>
+
+<!-- CLIPBOARD BUFFER -->
+<div id="tab-clip" class="tab-content">
+    <div class="clip-subtabs">
+        <button class="clip-subbtn active" data-view="history">История буфера</button>
+        <button class="clip-subbtn" data-view="saved">Сохранённое</button>
+    </div>
+    <input type="text" id="clip-search" placeholder="Поиск по тексту…" style="width:100%;box-sizing:border-box;margin-bottom:4px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin:10px 0 6px;gap:8px">
+        <span class="section-lbl" style="margin:0"><span id="clip-count" style="color:var(--muted)"></span></span>
+        <div style="display:flex;gap:6px">
+            <button id="clip-export" class="btn" style="margin:0;padding:4px 10px;font-size:11px;background:var(--surface2);border:1px solid var(--border);color:var(--text)" title="Скачать все скриншоты в ZIP">Экспорт скринов</button>
+            <button id="clip-clear" class="btn" style="margin:0;padding:4px 10px;font-size:11px;background:transparent;border:1px solid var(--border);color:var(--muted)">Очистить</button>
+        </div>
+    </div>
+    <div id="clip-status" style="font-size:11px;color:var(--muted);margin-bottom:6px;display:none"></div>
+    <div id="clip-list" style="display:flex;flex-direction:column;gap:8px"></div>
+    <div id="clip-empty" style="font-size:12px;color:var(--muted);text-align:center;padding:16px 0"></div>
+</div>
+
+<!-- SCANNER -->
+<div id="tab-scanner" class="tab-content">
+    <div class="section-lbl">Сканер доменов на странице</div>
+    <div style="display:flex;gap:6px;margin-bottom:2px">
+        <button id="scanner-btn" class="btn btn-primary" style="flex:1;margin:0;display:flex;align-items:center;justify-content:center;gap:6px">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            Вся страница
+        </button>
+        <button id="scanner-area-btn" class="btn" style="flex:none;background:var(--surface2);border:1px solid var(--border);color:var(--text);display:flex;align-items:center;gap:6px" title="Выбрать раздел на странице кликом">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h6M3 3v6M21 3h-6M21 3v6M3 21h6M3 21v-6M21 21h-6M21 21v-6"/></svg>
+            Выбрать раздел
+        </button>
+    </div>
+    <div id="scanner-status" class="result-plain" style="display:none;margin-bottom:8px"></div>
+    <div id="scanner-export" style="display:none;flex-direction:column;gap:6px;margin-bottom:10px">
+        <!-- Режим экспорта -->
+        <div style="display:flex;gap:4px;font-size:11px">
+            <button class="btn exp-mode active" data-mode="domains" style="flex:1;padding:4px 6px;background:var(--accent);color:#fff;border:1px solid var(--accent);border-radius:6px">Домены</button>
+            <button class="btn exp-mode" data-mode="info" style="flex:1;padding:4px 6px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);border-radius:6px">Инфо</button>
+            <button class="btn exp-mode" data-mode="whois" style="flex:1;padding:4px 6px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);border-radius:6px">+ Whois</button>
+        </div>
+        <!-- Формат файла -->
+        <div style="display:flex;gap:4px">
+            <button class="btn" data-fmt="txt" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px">TXT</button>
+            <button class="btn" data-fmt="csv" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px">CSV</button>
+            <button class="btn" data-fmt="json" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px">JSON</button>
+        </div>
+    </div>
+    <div id="scanner-results" style="display:flex;flex-direction:column;gap:6px;font-size:13px;"></div>
+</div>
+
+<div id="tab-ssl" class="tab-content">
+    <style>
+        /* Локальные стили вкладки SSL: гасим глобальный .btn-primary{width:100%},
+           который раньше распирал кнопки во flex-строках и сжимал поля ввода. */
+        #tab-ssl .ssl-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:12px;}
+        #tab-ssl .ssl-row{display:flex;gap:6px;align-items:stretch;}
+        #tab-ssl .ssl-row .btn-primary{width:auto;margin:0;flex:0 0 auto;white-space:nowrap;}
+        #tab-ssl .ssl-actions .btn{margin:0;flex:1;white-space:nowrap;}
+        #tab-ssl .ssl-actions .btn-primary{width:auto;margin:0;}
+        #tab-ssl .ssl-hint{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.4;}
+        #tab-ssl textarea{width:100%;box-sizing:border-box;background:var(--surface2);color:var(--text);
+            border:1px solid var(--border);border-radius:var(--r);padding:8px 11px;font-size:12px;
+            font-family:ui-monospace,Consolas,monospace;resize:vertical;outline:none;}
+        #tab-ssl textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--glow);}
+        /* под-разделы вкладки SSL */
+        #tab-ssl .ssl-subnav{display:flex;gap:6px;margin-bottom:12px;}
+        #tab-ssl .ssl-subtab{flex:1;padding:5px 8px;border:1px solid var(--border);background:var(--surface2);
+            color:var(--muted);border-radius:6px;font-size:11.5px;font-weight:600;cursor:pointer;transition:.15s;}
+        #tab-ssl .ssl-subtab:hover{color:var(--text);}
+        #tab-ssl .ssl-subtab.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+        #tab-ssl .ssl-bulk-row{display:flex;gap:6px;margin-top:8px;}
+        #tab-ssl .ssl-bulk-row .btn{margin:0;flex:1;white-space:nowrap;}
+        #tab-ssl select{background:var(--surface2);color:var(--text);border:1px solid var(--border);
+            border-radius:var(--r);padding:0 8px;font-size:12px;outline:none;}
+    </style>
+
+    <!-- ═══ СЕРТИФИКАТЫ ═══ -->
+    <div class="ssl-sub" data-sub="cert">
+        <!-- Сертификаты домена (Certificate Transparency) -->
+        <div class="ssl-card">
+            <div class="section-lbl" style="margin-bottom:8px">Сертификаты домена</div>
+            <div class="ssl-row">
+                <input type="text" id="ssl-input" placeholder="example.com" autocomplete="off" style="flex:1;min-width:0;">
+                <button id="ssl-btn" class="btn btn-primary" style="padding:0 16px">Проверить</button>
+            </div>
+            <div class="ssl-hint">Источник: Certificate Transparency (certspotter, резерв — crt.sh) — выданные сертификаты домена.</div>
+            <div id="ssl-status" class="result-plain" style="display:none;margin-top:8px"></div>
+            <div id="ssl-results" style="display:flex;flex-direction:column;gap:8px;font-size:13px;margin-top:8px"></div>
+            <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+                <div class="ssl-hint" style="margin-bottom:6px">Mixed content — небезопасные HTTP-ресурсы на HTTPS-странице (из-за них «замок» не зелёный). Проверяется домен из поля выше.</div>
+                <button id="ssl-mixed-btn" class="btn" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    Проверить mixed content
+                </button>
+                <div id="ssl-mixed-status" style="font-size:12px;margin-top:6px;min-height:14px"></div>
+                <div id="ssl-mixed-results" style="margin-top:4px"></div>
+            </div>
+        </div>
+
+        <!-- Check-Host (IP-инфо / ping / http / tcp) -->
+        <div class="ssl-card">
+            <div class="section-lbl" style="margin-bottom:8px">Check-Host</div>
+            <div class="ssl-row" style="margin-bottom:6px">
+                <input type="text" id="ssl-ch-input" placeholder="домен или IP" autocomplete="off" style="flex:1;min-width:0;">
+                <select id="ssl-ch-type" style="width:78px;flex:none">
+                    <option value="info">IP-инфо</option>
+                    <option value="ping">Ping</option>
+                    <option value="http">HTTP</option>
+                    <option value="tcp">TCP</option>
+                </select>
+            </div>
+            <div class="ssl-bulk-row">
+                <button id="ssl-ch-btn" class="btn btn-primary">Проверить</button>
+            </div>
+            <div id="ssl-ch-info" class="result-card" style="margin-top:8px"></div>
+            <div id="ssl-ch-nodes" class="nodes-grid"></div>
+        </div>
+
+        <!-- DNS-проверка (как раздел DNS) -->
+        <div class="ssl-card">
+            <div class="section-lbl" style="margin-bottom:8px">DNS-проверка</div>
+            <div class="ssl-row">
+                <input type="text" id="ssl-dns-input" placeholder="example.com" autocomplete="off" style="flex:1;min-width:0;">
+                <select id="ssl-dns-type" style="width:78px;flex:none">
+                    <option>A</option><option>AAAA</option><option>MX</option>
+                    <option>TXT</option><option>NS</option><option>CNAME</option><option>SOA</option><option>DMARC</option>
+                </select>
+            </div>
+            <div class="ssl-bulk-row">
+                <button id="ssl-dns-btn" class="btn btn-primary">Запрос</button>
+                <button id="ssl-dns-copy" class="btn" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted)" title="Скопировать ссылку на dnschecker.org">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;vertical-align:-2px"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                    DNSChecker
+                </button>
+            </div>
+            <div id="ssl-dns-result" class="result-card" style="margin-top:8px"></div>
+        </div>
+    </div>
+
+</div>
+
+<!-- AI CHAT (Google AI Studio / Gemini) -->
+<style>
+    #tab-ai { padding: 0 !important; }
+    .ai-card { padding: 28px 22px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+    .ai-logo { width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, var(--accent), #8b5cf6);
+        display: flex; align-items: center; justify-content: center; margin-bottom: 16px; box-shadow: 0 8px 20px rgba(79,106,255,.35); }
+    .ai-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+    .ai-card .desc { font-size: 12.5px; color: var(--muted); margin-bottom: 18px; line-height: 1.6; max-width: 300px; }
+    .ai-card input { width: 100%; height: 42px; border-radius: 10px; text-align: center; margin-bottom: 10px;
+        background: var(--surface2); border: 1px solid var(--border); color: var(--text); font-size: 13px; padding: 0 12px; }
+    .ai-card input::placeholder { color: var(--muted); }
+    .ai-card input:focus { border-color: var(--accent); outline: none; }
+    /* режим управления провайдерами — обычная форма слева */
+    #ai-key-form.prov-mode { display: block; text-align: left; padding: 16px 14px; }
+    #ai-key-form.prov-mode h3 { text-align: center; font-size: 16px; margin-bottom: 6px; }
+    #ai-key-form.prov-mode input,
+    #ai-key-form.prov-mode select { width: 100%; height: 38px; text-align: left; border-radius: 8px;
+        background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 0 10px; font-size: 13px; }
+    #ai-key-form.prov-mode input:focus,
+    #ai-key-form.prov-mode select:focus { border-color: var(--accent); outline: none; }
+    #ai-key-form.prov-mode .lbl { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+    .ai-card .btn-primary { width: 100%; height: 42px; border-radius: 10px; font-weight: 600; }
+    .ai-hint { font-size: 10.5px; color: var(--muted); margin-top: 14px; line-height: 1.5; }
+    .ai-hint a { color: var(--accent); text-decoration: none; }
+
+    #ai-chat { display: none; flex-direction: column; height: 448px; }
+    .ai-bar { display: flex; gap: 6px; align-items: center; padding: 9px 10px; border-bottom: 1px solid var(--border); background: var(--surface2); }
+    .ai-bar select { flex: 1; height: 34px; border-radius: 9px; font-size: 12px; }
+    .ai-newbtn { display: flex; align-items: center; gap: 4px; padding: 8px 12px; background: var(--accent); color: #fff;
+        border: none; border-radius: 9px; font-weight: 600; font-size: 12px; cursor: pointer; flex: none; }
+    .ai-newbtn:hover { background: var(--accent-h); }
+    .ai-iconbtn { width: 34px; height: 34px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface);
+        color: var(--muted); cursor: pointer; flex: none; display: flex; align-items: center; justify-content: center; }
+    .ai-iconbtn:hover { color: var(--err); border-color: var(--err); }
+
+    #ai-messages { flex: 1; overflow-y: auto; padding: 16px 12px; display: flex; flex-direction: column; gap: 14px; }
+    .ai-row { display: flex; gap: 8px; max-width: 90%; }
+    .ai-row.user { align-self: flex-end; flex-direction: row-reverse; }
+    .ai-row.bot  { align-self: flex-start; }
+    .ai-av { width: 26px; height: 26px; border-radius: 8px; flex: none; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+    .ai-av.user { background: var(--accent); color: #fff; }
+    .ai-av.bot  { background: linear-gradient(135deg, var(--accent), #8b5cf6); color: #fff; }
+    .ai-bubble { padding: 10px 13px; border-radius: 14px; font-size: 13px; line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
+    .ai-row.user .ai-bubble { background: var(--accent); color: #fff; border-bottom-right-radius: 5px; }
+    .ai-row.bot  .ai-bubble { background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-bottom-left-radius: 5px; }
+    .ai-bubble { position: relative; cursor: pointer; }
+    .ai-bubble img { max-width: 170px; border-radius: 9px; margin-bottom: 6px; display: block; }
+    .ai-bubble .ai-h { font-weight: 700; margin: 6px 0 3px; }
+    .ai-bubble .ai-ul { margin: 4px 0 4px 18px; padding: 0; }
+    .ai-bubble .ai-ul li { margin: 2px 0; }
+    .ai-bubble .ai-code { background: rgba(127,127,127,.2); padding: 1px 5px; border-radius: 4px; font-family: Consolas, monospace; font-size: 12px; }
+    .ai-bubble .ai-pre { background: rgba(127,127,127,.18); padding: 8px 10px; border-radius: 8px; overflow-x: auto; font-family: Consolas, monospace; font-size: 12px; margin: 6px 0; white-space: pre-wrap; }
+    .ai-bubble .ai-hr { border: none; border-top: 1px solid var(--border); margin: 8px 0; }
+    .ai-actions { display: flex; gap: 6px; padding-left: 2px; }
+    .ai-actbtn { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--muted);
+        background: none; border: none; cursor: pointer; padding: 3px 6px; border-radius: 6px; }
+    .ai-actbtn:hover { color: var(--accent); background: var(--surface2); }
+    .ai-empty { color: var(--muted); text-align: center; margin: auto; font-size: 12.5px; line-height: 1.6; max-width: 240px; }
+
+    .ai-foot { padding: 10px 12px; border-top: 1px solid var(--border); }
+    .ai-inputrow { display: flex; gap: 6px; align-items: flex-end; background: var(--surface2); border: 1px solid var(--border);
+        border-radius: 16px; padding: 5px 6px 5px 6px; transition: border-color .15s; }
+    .ai-inputrow:focus-within { border-color: var(--accent); }
+    .ai-inputrow textarea { flex: 1; resize: none; border: none; background: none; outline: none; box-shadow: none;
+        font-family: inherit; font-size: 13px; padding: 8px 2px; max-height: 120px; color: var(--text) !important; caret-color: var(--accent); }
+    .ai-inputrow textarea::placeholder { color: var(--muted); }
+    .ai-plain { background: none; border: none; color: var(--muted); cursor: pointer; padding: 7px; flex: none; display: flex; border-radius: 8px; }
+    .ai-plain:hover { color: var(--accent); }
+    .ai-sendbtn { width: 36px; height: 36px; border-radius: 12px; background: var(--accent); border: none; color: #fff;
+        cursor: pointer; flex: none; display: flex; align-items: center; justify-content: center; }
+    .ai-sendbtn:hover { background: var(--accent-h); }
+    .ai-sendbtn:disabled { opacity: .5; cursor: default; }
+    .ai-subfoot { display: flex; justify-content: space-between; align-items: center; margin-top: 7px; padding: 0 4px; font-size: 10px; color: var(--muted); }
+    .ai-subfoot span[id] { cursor: pointer; text-decoration: underline; }
+    #ai-attach-list { display: none; flex-wrap: wrap; gap: 5px; padding: 8px 12px 0; }
+    .ai-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; background: var(--surface2);
+        border: 1px solid var(--border); border-radius: 8px; padding: 4px 8px; }
+    .ai-chip .x { cursor: pointer; color: var(--err); font-weight: 700; }
+</style>
+
+<div id="tab-ai" class="tab-content">
+    <!-- Форма ввода ключа -->
+    <div id="ai-key-form" class="ai-card">
+        <div class="ai-logo">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#fff" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <h3>Подключение ИИ</h3>
+        <div class="desc">
+            Чат работает через сторонний API, совместимый с Gemini (Google AI Studio).
+            Вставьте свой API-ключ — он хранится <b>только локально</b> в браузере и никуда не передаётся.
+        </div>
+        <input type="password" id="ai-key-input" placeholder="Вставьте API-ключ">
+        <button id="ai-key-save" class="btn btn-primary">Подключить</button>
+        <div id="ai-key-err" class="result-plain" style="color:var(--err);display:none;margin-top:8px"></div>
+        <div class="ai-hint" style="text-align:left;max-width:300px">
+            <b>Как получить ключ:</b><br>
+            1. Подключите VPN (сервис недоступен из РФ).<br>
+            2. Перейдите на <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a><br>
+            3. Войдите в Google-аккаунт → «Create API key».<br>
+            4. Скопируйте ключ и вставьте сюда.
+        </div>
+    </div>
+
+    <!-- Чат -->
+    <div id="ai-chat">
+        <div class="ai-bar">
+            <button id="ai-new" class="ai-newbtn" title="Новый чат">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Чат
+            </button>
+            <select id="ai-chat-select"></select>
+            <button id="ai-delete" class="ai-iconbtn" title="Удалить чат">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+        </div>
+
+        <div id="ai-messages"></div>
+
+        <div id="ai-attach-list"></div>
+
+        <div class="ai-foot">
+            <div class="ai-inputrow">
+                <button id="ai-attach-btn" class="ai-plain" title="Прикрепить файл">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                </button>
+                <input type="file" id="ai-file-input" multiple accept="image/*,.txt,.md,.json,.csv,.xml,.log" style="display:none">
+                <textarea id="ai-input" placeholder="Сообщение…" rows="1"></textarea>
+                <button id="ai-send" class="ai-sendbtn" title="Отправить">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>
+            </div>
+            <div class="ai-subfoot">
+                <span>Enter — отправить, Shift+Enter — перенос</span>
+                <span id="ai-reset-key">Сменить ключ</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- DNS TEMPLATES -->
+<style>
+    #tab-dnstpl .dns-subtabs { display: flex; gap: 6px; margin-bottom: 12px; }
+    #tab-dnstpl .dns-sub { flex: 1; padding: 7px 0; border: 1px solid var(--border); background: var(--surface2);
+        color: var(--muted); border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; }
+    #tab-dnstpl .dns-sub.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .dns-prov { margin-bottom: 8px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .dns-prov-head { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: var(--surface2); }
+    .dns-prov-name { font-weight: 600; font-size: 12px; }
+    .dns-copy { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--accent);
+        background: none; border: 1px solid var(--border); border-radius: 6px; padding: 3px 8px; cursor: pointer; }
+    .dns-copy:hover { background: var(--accent); color: #fff; }
+    .dns-recs { padding: 8px 10px; font-family: Consolas, monospace; font-size: 12px; white-space: pre-wrap; word-break: break-all; line-height: 1.6; }
+    .dns-lines { padding: 4px 6px; }
+    .dns-line { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 3px 6px; border-radius: 5px; }
+    .dns-line:hover { background: var(--surface2); }
+    .dns-line-txt { font-family: Consolas, monospace; font-size: 12px; word-break: break-all; }
+    .dns-line-copy { background: none; border: none; color: var(--muted); cursor: pointer; padding: 2px; flex: none; display: flex; }
+    .dns-line-copy:hover { color: var(--accent); }
+    .dns-mini { background: none; border: 1px solid var(--border); color: var(--muted); cursor: pointer; border-radius: 5px; padding: 2px 6px; font-size: 11px; }
+    .dns-mini:hover { color: var(--accent); border-color: var(--accent); }
+    .dns-mini.dns-del:hover { color: var(--err); border-color: var(--err); }
+    .dns-add { width: 100%; background: var(--surface2); border: 1px dashed var(--border); color: var(--muted); margin: 4px 0 10px; }
+    .dns-add:hover { color: var(--accent); border-color: var(--accent); }
+    .dns-form { border: 1px solid var(--accent); border-radius: 10px; padding: 12px; margin-top: 8px; background: var(--surface2); }
+    .dns-form input, .dns-form textarea { width: 100%; margin-bottom: 6px; font-family: inherit;
+        background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 8px 10px; outline: none; }
+    .dns-form input:focus, .dns-form textarea:focus { border-color: var(--accent); }
+    .dns-form input::placeholder, .dns-form textarea::placeholder { color: var(--muted); }
+    .dns-form textarea { resize: vertical; font-family: Consolas, monospace; font-size: 12px; line-height: 1.5; }
+    #spf-checks { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 10px; }
+    .spf-row { display: flex; align-items: center; gap: 8px; font-size: 12.5px; padding: 9px 11px;
+        border: 1px solid var(--border); border-radius: 10px; cursor: pointer; background: var(--surface);
+        transition: all .12s; user-select: none; }
+    .spf-row:hover { border-color: var(--accent); }
+    .spf-row:has(input:checked) { border-color: var(--accent); background: rgba(79,106,255,0.12); }
+    .spf-row input { -webkit-appearance: none; appearance: none; margin: 0; width: 19px; height: 19px; flex: none;
+        border: 2px solid var(--border); border-radius: 6px; background: var(--surface); position: relative; cursor: pointer; transition: all .12s; }
+    .spf-row input:checked { background: var(--accent); border-color: var(--accent); }
+    .spf-row input:checked::after { content: ''; position: absolute; left: 5px; top: 1px; width: 5px; height: 9px;
+        border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+    .spf-row:has(input:checked) span { color: var(--accent); font-weight: 600; }
+    .spf-row span { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dns-build { border: 1px solid var(--accent); border-radius: 12px; padding: 14px; margin-top: 8px; background: var(--surface2); }
+    .dns-build .lbl { font-size: 11px; color: var(--muted); margin: 8px 0 4px; }
+    .dns-build select, .dns-build input[type="text"] { width: 100%; margin-bottom: 4px; }
+    .dns-out { margin-top: 10px; padding: 10px 12px; background: var(--surface); border: 1px dashed var(--accent); border-radius: 9px;
+        font-family: Consolas, monospace; font-size: 12px; word-break: break-all; color: var(--ok); font-weight: 600; }
+</style>
+<div id="tab-dnstpl" class="tab-content">
+    <div class="section-lbl">Шаблоны DNS-записей</div>
+    <div class="dns-subtabs">
+        <button class="dns-sub active" data-sub="ns">NS</button>
+        <button class="dns-sub" data-sub="mx">MX</button>
+        <button class="dns-sub" data-sub="spf">SPF</button>
+        <button class="dns-sub" data-sub="dmarc">DMARC</button>
+        <button class="dns-sub" data-sub="custom">Свои</button>
+    </div>
+    <div id="dns-tpl-body"></div>
+</div>
+
+<!-- 2FA / Google Authenticator -->
+<style>
+    #tab-auth { padding: 0; }
+    .auth-top { display: flex; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+    .auth-top button { flex: 1; }
+    .auth-bottom { padding: 10px 12px 14px; border-top: 1px solid var(--border); }
+    .auth-code.copied { color: var(--ok) !important; }
+    .auth-list { padding: 8px 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+    .auth-item { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; background: var(--surface2); }
+    .auth-row1 { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .auth-name { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .auth-acts { display: flex; gap: 4px; flex: none; }
+    .auth-mini { background: none; border: 1px solid var(--border); color: var(--muted); border-radius: 6px; cursor: pointer; padding: 3px 6px; font-size: 11px; }
+    .auth-mini:hover { color: var(--accent); border-color: var(--accent); }
+    .auth-mini.del:hover { color: var(--err); border-color: var(--err); }
+    .auth-row2 { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+    .auth-code { font-family: Consolas, monospace; font-size: 26px; font-weight: 700; letter-spacing: 3px; cursor: pointer; color: var(--text); }
+    .auth-code:hover { color: var(--accent); }
+    .auth-ring { width: 26px; height: 26px; flex: none; }
+    .auth-empty { color: var(--muted); text-align: center; padding: 30px 16px; font-size: 13px; line-height: 1.6; }
+    .auth-form { padding: 14px 12px; }
+    .auth-form input { width: 100%; margin-bottom: 8px; }
+    .auth-form .lbl { font-size: 11px; color: var(--muted); margin: 4px 0; }
+    .auth-form .or { text-align: center; color: var(--muted); font-size: 11px; margin: 10px 0; }
+</style>
+<div id="tab-auth" class="tab-content">
+    <div id="auth-list" class="auth-list"></div>
+    <div class="auth-bottom">
+        <button id="auth-add-btn" class="btn btn-primary" style="width:100%;margin:0">+ Добавить аккаунт</button>
+    </div>
+</div>
+
+<!-- L2 -->
+<style>
+    #tab-l2 .mc-card { border:1px solid var(--border); border-radius:9px; padding:10px 11px; margin-bottom:8px; background:var(--surface2); }
+    #tab-l2 .mc-head { display:flex; align-items:center; gap:7px; margin-bottom:5px; }
+    #tab-l2 .mc-name { font-size:12px; font-weight:600; }
+    #tab-l2 .mc-badge { font-size:10px; padding:1px 7px; border-radius:10px; font-weight:600; margin-left:auto; }
+    #tab-l2 .mc-ok   { background:rgba(34,197,94,0.15);  color:var(--ok); }
+    #tab-l2 .mc-warn { background:rgba(245,158,11,0.15); color:var(--warn); }
+    #tab-l2 .mc-err  { background:rgba(239,68,68,0.15);  color:var(--err); }
+    #tab-l2 .mc-dim  { background:var(--surface); color:var(--muted); border:1px solid var(--border); }
+    #tab-l2 .mc-val  { font-family:monospace; font-size:11px; color:var(--muted); word-break:break-all; line-height:1.5; white-space:pre-wrap; }
+    #tab-l2 .mc-bl   { display:flex; flex-wrap:wrap; gap:5px; }
+    #tab-l2 .mc-bl span { font-size:10.5px; padding:2px 8px; border-radius:6px; }
+    #tab-l2 .stk-cat { font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin:10px 0 5px }
+    #tab-l2 .stk-chips { display:flex;flex-wrap:wrap;gap:6px }
+    #tab-l2 .stk-chip { font-size:12px;padding:4px 10px;border-radius:16px;background:var(--surface2);border:1px solid var(--border);color:var(--text) }
+    #tab-l2 .stk-chip b { color:var(--accent);font-weight:600 }
+    #tab-l2 .l2-sub { display:flex; gap:6px; margin-bottom:12px; }
+    #tab-l2 .l2-subbtn { flex:1; padding:7px 0; border:1px solid var(--border); background:var(--surface2); color:var(--muted); border-radius:8px; cursor:pointer; font-size:12px; font-family:inherit; }
+    #tab-l2 .l2-subbtn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+</style>
+<div id="tab-l2" class="tab-content">
+    <div class="l2-sub">
+        <button class="l2-subbtn active" data-l2="domain">Домен</button>
+        <button class="l2-subbtn" data-l2="spam">Спам</button>
+        <button class="l2-subbtn" data-l2="tech">Стек</button>
+    </div>
+
+    <!-- ПАНЕ: Проверка домена -->
+    <div class="l2-pane" data-pane="domain">
+    <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Тянет SPF, DKIM, DMARC, MX, A, rDNS и проверяет IP по чёрным спискам — без отправки письма и без лимитов.</div>
+    <input id="l2-mc-domain" type="text" placeholder="example.ru" autocomplete="off" style="width:100%;margin-bottom:6px">
+    <input id="l2-mc-selector" type="text" placeholder="DKIM-селектор (необязательно, напр. dkim)" autocomplete="off" style="width:100%;margin-bottom:8px">
+    <button id="l2-mc-btn" class="btn btn-primary" style="width:100%">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        Проверить
+    </button>
+    <div id="l2-mc-status" style="margin-top:8px;font-size:12px;min-height:16px"></div>
+    <div id="l2-mc-results" style="margin-top:4px"></div>
+    </div>
+
+    <!-- ПАНЕ: Проверка письма на спам -->
+    <div class="l2-pane" data-pane="spam" style="display:none">
+
+    <!-- Как пользоваться -->
+    <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px">
+        <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:5px"><span style="color:var(--accent);font-weight:700">1.</span> Открой сервис — он выдаст тестовый адрес</div>
+        <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:5px"><span style="color:var(--accent);font-weight:700">2.</span> Отправь письмо с проверяемого сервера на этот адрес</div>
+        <div style="display:flex;align-items:flex-start;gap:8px"><span style="color:var(--accent);font-weight:700">3.</span> Нажми «Проверить» на странице сервиса — увидишь отчёт (SPF, DKIM, DMARC, rDNS, blacklist, спам-оценка)</div>
+    </div>
+
+    <!-- SendBridge (без лимита) -->
+    <div style="border:1px solid var(--accent);border-radius:10px;padding:11px;margin-bottom:10px;background:var(--glow)">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+            <span style="font-size:13px;font-weight:600">SendBridge</span>
+            <span style="font-size:10px;background:var(--accent);color:#fff;padding:1px 7px;border-radius:10px;font-weight:600">без лимита</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:9px">Полный отчёт как у mail-tester, но без ограничения 3 теста/день. Без регистрации.</div>
+        <button id="l2-sendbridge-btn" class="btn btn-primary" style="width:100%">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            Открыть SendBridge
+        </button>
+    </div>
+
+    <!-- mail-tester (запасной) -->
+    <div style="border:1px solid var(--border);border-radius:10px;padding:11px;background:var(--surface2)">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+            <span style="font-size:13px;font-weight:600">mail-tester.com</span>
+            <span style="font-size:10px;background:var(--surface);color:var(--muted);padding:1px 7px;border-radius:10px;border:1px solid var(--border)">3 теста/день на IP</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:9px">Классический сервис. Лимит считается по IP офиса — на всех общий.</div>
+        <button id="l2-mailtester-btn" class="btn" style="width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            Открыть mail-tester
+        </button>
+    </div>
+    </div>
+
+    <!-- ПАНЕ: Технологии сайта (детектор, ex-Wappalyzer) -->
+    <div class="l2-pane" data-pane="tech" style="display:none">
+    <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Определяет CMS, конструктор, фреймворк, хостинг, аналитику и др. по текущей открытой вкладке.</div>
+    <button id="stk-btn" class="btn btn-primary" style="width:100%">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        Проверить текущий сайт
+    </button>
+    <div id="stk-status" style="margin-top:8px;font-size:12px;min-height:16px"></div>
+    <div id="stk-results" style="margin-top:4px"></div>
+    </div>
+
+</div>
+
+<script src="libs/otpauth.umd.min.js"></script>
+<script src="libs/jsQR.min.js"></script>
+<script src="popup.js"></script>
+</body>
+</html>
