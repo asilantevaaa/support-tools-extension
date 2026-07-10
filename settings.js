@@ -23,6 +23,23 @@
         applyTheme('dark');
     });
 
+    // ── Язык интерфейса / UI language ────────────────────────────────────
+    (function initLang() {
+        const cur = localStorage.getItem('appLang') || 'ru';
+        const ruBtn = document.getElementById('lang-ru-btn');
+        const enBtn = document.getElementById('lang-en-btn');
+        if (!ruBtn || !enBtn) return;
+        const sync = (l) => { ruBtn.classList.toggle('active', l === 'ru'); enBtn.classList.toggle('active', l === 'en'); };
+        sync(cur);
+        const set = (l) => {
+            localStorage.setItem('appLang', l);
+            sync(l);
+            location.reload(); // перерисовать страницу на выбранном языке
+        };
+        ruBtn.addEventListener('click', () => set('ru'));
+        enBtn.addEventListener('click', () => set('en'));
+    })();
+
     // ── Кэш ──────────────────────────────────────────────────────────────
     const cacheSel = document.getElementById('s-cache-ttl');
     cacheSel.value = localStorage.getItem('cacheTTL') || '5';
