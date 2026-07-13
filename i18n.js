@@ -270,7 +270,88 @@
         "день": "day", "дня": "days", "дней": "days", "дн.": "d", "мес.": "mo",
         "января": "January", "февраля": "February", "марта": "March", "апреля": "April",
         "мая": "May", "июня": "June", "июля": "July", "августа": "August",
-        "сентября": "September", "октября": "October", "ноября": "November", "декабря": "December"
+        "сентября": "September", "октября": "October", "ноября": "November", "декабря": "December",
+
+        // — Дополнительно: домены / SSL / статусы / чат / скрипты / 2FA / SPF —
+        "Сырые ответы источников": "Raw source responses",
+        "Сокращаем": "Shortening", "Сокращаем…": "Shortening…",
+        "Получаем информацию об IP...": "Getting IP info...",
+        "Запускаем проверку из нескольких точек...": "Running a check from multiple nodes...",
+        "Запрашиваю Certificate Transparency…": "Requesting Certificate Transparency…",
+        "Проверяю живой сертификат (leaderssl)…": "Checking the live certificate (leaderssl)…",
+        "Проверяю...": "Checking...", "Живой серт (leaderssl)": "Live cert (leaderssl)",
+        "есть замечания (см. leaderssl)": "issues found (see leaderssl)",
+        "Открыть на leaderssl": "Open on leaderssl", "leaderssl недоступен:": "leaderssl unavailable:",
+        "CT недоступен (": "CT unavailable (", "Whois недоступен": "Whois unavailable",
+        "Whois всех доменов": "Whois of all domains", "Домен (лист)": "Domain (leaf)",
+        "Доменов не найдено": "No domains found",
+        "В выбранном разделе доменов не найдено.": "No domains found in the selected area.",
+        "Не удалось собрать со страницы:": "Failed to collect from the page:",
+        "Ошибка сканирования:": "Scan error:", "Сканирую страницу...": "Scanning the page...",
+        "🎯 Кликните по разделу для сканирования": "🎯 Click a section to scan",
+        "Выберите раздел на странице (или «Вся страница»)…": "Select a section on the page (or \"Whole page\")…",
+        "Запустить Whois и DNS для этого домена": "Run Whois and DNS for this domain",
+        "В игнор": "Ignore", "В исключения (больше не показывать)": "Add to exclusions (don't show again)",
+        "Добавить в постоянный список игнорирования": "Add to the permanent ignore list",
+        "нет PTR": "no PTR", "ISP / Организация": "ISP / Organization", "IP адрес": "IP address",
+        "Город": "City", "Регион": "Region", "Страна": "Country", "Организация": "Organization",
+        "Часовой пояс": "Time zone", "Индекс": "Postal code",
+        "Данные недоступны через API. →": "Data unavailable via API. →",
+        "Открой любую страницу staff.example.com": "Open any staff.example.com page",
+        "Открой страницу staff.example.com/ssl": "Open the staff.example.com/ssl page",
+        "Создаём заявки…": "Creating requests…", "Укажи логин или домены": "Enter a login or domains",
+        "Не удалось выполнить на странице": "Failed to run on the page",
+        "Не удалось загрузить страницу": "Failed to load the page",
+        "Не удалось сделать снимок": "Failed to take a screenshot",
+        "Не удалось открыть картинку": "Failed to open the image",
+        "Недоступно для этой страницы": "Not available for this page",
+        "Недоступно на этой странице": "Not available on this page",
+        "✗ Недоступно на этой странице": "✗ Not available on this page",
+        "Нельзя запустить на системных страницах.": "Can't run on system pages.",
+        "Скриншот недоступен на системных страницах": "Screenshot isn't available on system pages",
+        "Плавающую панель нельзя открыть на этой странице": "The floating panel can't be opened on this page",
+        "Ошибка скриншота": "Screenshot error", "Ошибка анализа": "Analysis error", "Ошибка экспорта": "Export error",
+        "Ошибка связи с фоном. Перезагрузи расширение.": "Background connection error. Reload the extension.",
+        "Некорректный домен": "Invalid domain", "Не найдено": "Not found", "Готово": "Done",
+        "Да": "Yes", "История": "History", "Панель": "Panel", "Всё": "All", "все коды": "all codes",
+        "Отмена": "Cancel", "Скопировано:": "Copied:", "Надёжность:": "Strength:",
+        "Список пуст": "List is empty", "Нет аккаунтов.": "No accounts.", "Новый аккаунт": "New account",
+        "Название (сервис / email)": "Name (service / email)", "Секретный ключ (Base32)": "Secret key (Base32)",
+        "Нажмите «+ Аккаунт», введите ключ вручную или отсканируйте QR-код.": "Click \"+ Account\", enter a key manually or scan a QR code.",
+        "Загрузить картинку с QR": "Upload a QR image", "Сканировать QR на странице": "Scan QR on the page",
+        "— или QR-код —": "— or QR code —", "Опознано": "Recognized", "Ничего не определено": "Nothing detected",
+        "Переименовать": "Rename", "Перенести": "Transfer", "Новый шаблон": "New template",
+        "Тип записи:": "Record type:", "Конструктор SPF": "SPF builder", "Скопировать SPF": "Copy SPF",
+        "Политика для остальных (all):": "Policy for the rest (all):", "Свой IP": "Custom IP",
+        "Откуда отправляется почта (можно несколько):": "Where mail is sent from (multiple allowed):",
+        "-all — строгий отказ": "-all — hard fail", "~all — мягкий отказ (рекомендуется)": "~all — soft fail (recommended)",
+        "?all — нейтрально": "?all — neutral", "Имя/поддомен (@, www, mail...)": "Name/subdomain (@, www, mail...)",
+        "＋ Добавить запись": "＋ Add record", "＋ Пустой чат": "＋ Empty chat",
+        "✓ Mixed content не найден — небезопасных HTTP-ресурсов нет": "✓ No mixed content — no insecure HTTP resources",
+        "— = проверка недоступна (список блокирует публичный DNS)": "— = check unavailable (the list blocks public DNS)",
+        "▶ Показать RAW whois-ответ": "▶ Show RAW whois response", "⏳ Запрос...": "⏳ Requesting...",
+        "— останавливаю…": "— stopping…",
+        "CDN / Хостинг": "CDN / Hosting", "1С-Битрикс": "1C-Bitrix", "Битрикс24": "Bitrix24",
+        "Яндекс": "Yandex", "Яндекс.Метрика": "Yandex.Metrica", "Руцентр": "RU-Center",
+        "Управление API": "API management", "Добавить API": "Add API",
+        "Добавьте API любого ИИ. Ключ хранится только локально.": "Add any AI API. The key is stored locally only.",
+        "Начните диалог — задайте вопрос или прикрепите файл": "Start a chat — ask a question or attach a file",
+        "Системная инструкция (правила для ИИ)...": "System instruction (rules for the AI)...",
+        "Модель": "Model", "Свой (OpenAI-совместимый)": "Custom (OpenAI-compatible)",
+        "Заполните Base URL и модель": "Fill in Base URL and model", "Сохранить и подключиться": "Save and connect",
+        "Ошибка запроса к ИИ": "AI request error", "⚠️ Не выбран API. Добавьте провайдера.": "⚠️ No API selected. Add a provider.",
+        "⚠️ Ошибка связи": "⚠️ Connection error", "Исправить текст": "Fix text", "Комментарий": "Comment",
+        "Команды скрипта:": "Script commands:", "Команда не найдена. Нажмите «Запустить» заново.": "Command not found. Click \"Run\" again.",
+        "Сначала выберите скрипт.": "Select a script first.", "Введите название скрипта.": "Enter a script name.",
+        "Введите название и код скрипта.": "Enter a script name and code.", "⚙ Создать шаблон…": "⚙ Create template…",
+        "✓ Выполнено.": "✓ Done.", "✓ Выполнено (нет вывода).": "✓ Done (no output).",
+        "✕ Ошибка выполнения:": "✕ Execution error:", "✕ Нет результата (страница недоступна?)": "✕ No result (page unavailable?)",
+        "Настройки YOURLS": "YOURLS settings", "Введите API-ключ": "Enter API key",
+        "Введите ключ перед сохранением": "Enter a key before saving", "Ключ удалён": "Key deleted",
+        "✓ Ключ сохранён": "✓ Key saved", "✓ Настройки сохранены": "✓ Settings saved", "API-ключ": "API key",
+        "Chrome API недоступен": "Chrome API unavailable",
+        "или": "or", "найдено": "found", "ожидание": "pending", "осталось": "left", "через": "in",
+        "проверить": "check", "рус": "ru"
     };
 
     const getLang = () => { try { return localStorage.getItem('appLang') || 'ru'; } catch (e) { return 'ru'; } };
@@ -279,6 +360,23 @@
     const NORM = {};
     for (const k in DICT) NORM[k.replace(/\s+/g, ' ').trim()] = DICT[k];
     const lookup = (s) => DICT[s] || NORM[s.replace(/\s+/g, ' ').trim()];
+
+    // Подстановочные правила для строк с числами/интерполяцией (substring-замены).
+    const REGEXPS = [
+        [/Готово: переведено фрагментов ~(\d+) \((\d+)\/(\d+) блоков\)/g, 'Done: translated ~$1 fragments ($2/$3 blocks)'],
+        [/(\d+) бит энтропии/g, '$1 bits of entropy'],
+        [/(\d+(?:\/\d+)?) точек/g, '$1 nodes'],
+        [/осталось (\d+) дн\./g, '$1 d left'],
+        [/(\d+) дн\./g, '$1 d'],
+        [/\b1 день\b/g, '1 day'],
+        [/(\d+) (?:дня|дней|день)/g, '$1 days'],
+        [/Скопировано \(/g, 'Copied ('],
+        [/(\d{4}) г\./g, '$1'],
+        [/(\d )января/g, '$1January'], [/(\d )февраля/g, '$1February'], [/(\d )марта/g, '$1March'],
+        [/(\d )апреля/g, '$1April'], [/(\d )мая/g, '$1May'], [/(\d )июня/g, '$1June'],
+        [/(\d )июля/g, '$1July'], [/(\d )августа/g, '$1August'], [/(\d )сентября/g, '$1September'],
+        [/(\d )октября/g, '$1October'], [/(\d )ноября/g, '$1November'], [/(\d )декабря/g, '$1December'],
+    ];
 
     function translate(root) {
         if (getLang() !== 'en' || !root) return;
@@ -290,7 +388,10 @@
             const t = raw.trim();
             if (!t) continue;
             const tr = lookup(t);
-            if (tr) node.nodeValue = raw.replace(t, tr);
+            if (tr) { node.nodeValue = raw.replace(t, tr); continue; }
+            let v = raw, changed = false;
+            for (const [re, rep] of REGEXPS) { const nv = v.replace(re, rep); if (nv !== v) { v = nv; changed = true; } }
+            if (changed) node.nodeValue = v;
         }
         root.querySelectorAll('[placeholder],[title]').forEach(el => {
             ['placeholder', 'title'].forEach(a => {

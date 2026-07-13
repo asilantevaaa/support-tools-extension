@@ -3557,7 +3557,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // ── DKIM ──
         const DKIM_SELECTORS = {
-            'Таймвеб': [
+            'ExampleHost': [
                 { case: 'для отправки с php mail()', sel: 'mail._domainkey' },
                 { case: 'для отправки с SMTP', sel: 'dkim._domainkey' }
             ],
@@ -3603,7 +3603,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="dns-build" style="border-color:var(--border)">
                     <div style="font-weight:600;font-size:12px;margin-bottom:8px">DKIM-запись</div>
                     <div class="lbl" style="font-size:11px;color:var(--muted);margin-bottom:3px">Сервис</div>
-                    <select id="dkim-svc" style="width:100%;margin-bottom:8px">${svc.map(s => `<option${s === 'Таймвеб' ? ' selected' : ''}>${s}</option>`).join('')}</select>
+                    <select id="dkim-svc" style="width:100%;margin-bottom:8px">${svc.map(s => `<option${s === 'ExampleHost' ? ' selected' : ''}>${s}</option>`).join('')}</select>
                     <div class="lbl" style="font-size:11px;color:var(--muted);margin-bottom:3px">DKIM-подпись: base64, PEM (-----BEGIN PUBLIC KEY-----) или готовая запись — уберём переносы и лишнее сами</div>
                     <textarea id="dkim-key" rows="4" placeholder="-----BEGIN PUBLIC KEY-----&#10;MIGfMA0GCSq...AQAB&#10;-----END PUBLIC KEY-----" style="width:100%;resize:vertical;font-family:Consolas,monospace;font-size:11px;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 10px;outline:none;margin-bottom:10px"></textarea>
                     <div id="dkim-out"></div>
@@ -3621,8 +3621,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const genBlock = document.getElementById('dkim-gen-block');
             const updateOut = () => {
                 const sel = svcSel.value;
-                // генерация DKIM только для Таймвеба
-                if (genBlock) genBlock.style.display = (sel === 'Таймвеб') ? 'block' : 'none';
+                // генерация DKIM только для ExampleHost
+                if (genBlock) genBlock.style.display = (sel === 'ExampleHost') ? 'block' : 'none';
                 // Принимаем: голый base64, PEM (-----BEGIN/END PUBLIC KEY-----) или готовую запись v=DKIM1;…;p=…
                 let raw = (keyEl.value || '')
                     .replace(/-----BEGIN[^-]*-----/gi, '')

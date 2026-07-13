@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Support Tools Pro",
   "version": "3.60",
-  "description": "Инструменты технической поддержки",
+  "description": "Support engineer's browser toolkit — domain/DNS/SSL diagnostics, screenshot editor, 2FA, translator, and more.",
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
