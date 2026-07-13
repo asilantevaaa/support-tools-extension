@@ -823,7 +823,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const save = (cb) => { normalize(); chrome.storage.local.set({ clipItems: items }, cb); };
 
         const fmtTime = (ts) => {
-            try { return new Date(ts).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }); }
+            try { return new Date(ts).toLocaleString(((localStorage.getItem('appLang')||'en')==='en'?'en-GB':'ru-RU'), { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }); }
             catch { return ''; }
         };
         const esc = s => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
@@ -1465,7 +1465,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!str) return '—';
         const d = new Date(str);
         if (isNaN(d)) return str;
-        return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        return d.toLocaleDateString(((localStorage.getItem('appLang')||'en')==='en'?'en-GB':'ru-RU'), { day: '2-digit', month: '2-digit', year: 'numeric' });
     };
     const row = (label, val) =>
         `<div class="result-row"><span class="r-label">${label}</span><span class="r-value">${val || '—'}</span></div>`;
@@ -2027,7 +2027,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!start) return;
         const d = new Date(start);
         d.setDate(d.getDate() + days);
-        showPlain('date-calc-result', d.toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' }));
+        showPlain('date-calc-result', d.toLocaleDateString(((localStorage.getItem('appLang')||'en')==='en'?'en-GB':'ru-RU'), { day: '2-digit', month: 'long', year: 'numeric' }));
     });
 
     document.getElementById('date-diff-btn').addEventListener('click', () => {
@@ -2447,7 +2447,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!s) return '—';
             const d = new Date(s);
             if (isNaN(d)) return s;
-            return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            return d.toLocaleDateString(((localStorage.getItem('appLang')||'en')==='en'?'en-GB':'ru-RU'), { day: '2-digit', month: '2-digit', year: 'numeric' });
         };
         const esc = (s) => (s || '').replace(/[<>&]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]));
 

@@ -106,8 +106,7 @@
         { id: 'tab-ssl',       label: 'SSL' },
         { id: 'tab-dnstpl',    label: 'Записи' },
         { id: 'tab-auth',      label: '2FA' },
-        { id: 'tab-acc',       label: 'Аккаунт' },
-        { id: 'tab-l2',        label: 'L2' },
+        { id: 'tab-l2',        label: 'Почта' },
     ];
 
     const loadTabConfig = () => {
@@ -238,8 +237,6 @@
     const ltToggle        = document.getElementById('linter-languagetool-toggle');
     const ruleToggles     = {
         spelling: document.getElementById('linter-rule-spelling'),
-        infostyle: document.getElementById('linter-rule-infostyle'),
-        support: document.getElementById('linter-rule-support'),
         typography: document.getElementById('linter-rule-typography')
     };
 

@@ -99,18 +99,18 @@ function buildContextMenus() {
     try {
         chrome.contextMenus.removeAll(() => {
             swallow();
-            chrome.contextMenus.create({ id: 'st-ctx-root', title: 'Support Tools: проверить «%s»', contexts: ['selection'] }, swallow);
+            chrome.contextMenus.create({ id: 'st-ctx-root', title: 'Support Tools: check "%s"', contexts: ['selection'] }, swallow);
             CTX_ITEMS.forEach(it => chrome.contextMenus.create({
                 id: it.id, parentId: 'st-ctx-root', title: it.title, contexts: ['selection'],
             }, swallow));
             // Только на staff.example.com — сохранить выделенное как пасту (шаблон)
             chrome.contextMenus.create({
-                id: 'st-ctx-paste', title: 'Сохранить как пасту', contexts: ['selection'],
+                id: 'st-ctx-paste', title: 'Save as snippet', contexts: ['selection'],
                 documentUrlPatterns: ['https://staff.example.com/*'],
             }, swallow);
             // Картинки — сохранить в «Буфер»
             chrome.contextMenus.create({
-                id: 'st-ctx-clip-image', title: 'Сохранить изображение в Буфер', contexts: ['image'],
+                id: 'st-ctx-clip-image', title: 'Save image to Clipboard', contexts: ['image'],
             }, swallow);
             ctxBuilding = false;
         });
@@ -189,7 +189,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     if (info.menuItemId === 'st-ctx-clip-image') {
         (async () => {
             const dataUrl = await imageToDataUrl(info.srcUrl, tab && tab.id);
-            const msg = dataUrl ? 'Изображение сохранено в Буфер' : 'Не удалось получить изображение';
+            const msg = dataUrl ? 'Image saved to Clipboard' : 'Failed to fetch the image';
             if (dataUrl) saveClipItem({ id: clipGenId(), type: 'image', data: dataUrl, ts: Date.now(), pinned: false });
             try {
                 chrome.notifications.create('clip-img-' + Date.now(), {

@@ -379,7 +379,14 @@
         "Проверка орфографии, пунктуации и грамматики через сервис LanguageTool. Текст отправляется на api.languagetool.org": "Spelling, punctuation and grammar checking via LanguageTool. Text is sent to api.languagetool.org",
         "из Google Authenticator: в приложении «Экспорт аккаунтов» → сохраните QR → загрузите картинку сюда.": "from Google Authenticator: in the app use \"Export accounts\" → save the QR → upload the image here.",
         "Генерация DKIM для php mail()": "Generate DKIM for php mail()", "DKIM-запись": "DKIM record",
-        "Скопировано:": "Copied:", "Скопировано": "Copied", "обычно (зависит от панели)": "usually (depends on the panel)"
+        "Скопировано:": "Copied:", "Скопировано": "Copied", "Скопировано!": "Copied!",
+        "Сокращаем...": "Shortening...", "обычно (зависит от панели)": "usually (depends on the panel)",
+        "Чат работает через сторонний API, совместимый с Gemini (Google AI Studio). Вставьте свой API-ключ — он хранится": "The chat works via a third-party Gemini-compatible API (Google AI Studio). Paste your API key — it is stored",
+        "(см. список ниже)": "(see list below)", "10 mail.ВАШ-ДОМЕН.ru.": "10 mail.YOUR-DOMAIN.tld.",
+        "v=spf1 ip4:IP_ВАШЕГО_СЕРВЕРА ~all": "v=spf1 ip4:YOUR_SERVER_IP ~all", "Аккаунт": "Account",
+        "Сбой отображения результата:": "Render failure:", "Сбой отображения:": "Render failure:",
+        "в «Проверке домена»": "in \"Domain check\"", "не удалось выполнить на странице": "failed to run on the page",
+        "ip4: 203.0.113.10 (через запятую можно несколько)": "ip4: 203.0.113.10 (comma-separated allowed)"
     };
 
     const getLang = () => { try { return localStorage.getItem('appLang') || 'en'; } catch (e) { return 'en'; } };
@@ -404,6 +411,7 @@
         [/Новая запись \(([^)]+)\)/g, 'New record ($1)'],
         [/Проверяю живой серт…/g, 'Checking the live cert…'],
         [/Смотрю историю выдач \(CT\)…/g, 'Viewing issuance history (CT)…'],
+        [/Аккаунт не найден или нет доступа \(/g, 'Account not found or no access ('],
         [/(\d{4}) г\./g, '$1'],
         [/(\d )января/g, '$1January'], [/(\d )февраля/g, '$1February'], [/(\d )марта/g, '$1March'],
         [/(\d )апреля/g, '$1April'], [/(\d )мая/g, '$1May'], [/(\d )июня/g, '$1June'],
