@@ -61,6 +61,7 @@
         "История A": "A history", "История AAAA": "AAAA history", "История MX": "MX history",
         "История NS": "NS history", "История SOA": "SOA history", "История TXT": "TXT history",
         "История буфера": "Clipboard history",
+        "Автоматически сохранять копируемый текст (кроме полей паролей). По умолчанию выключено ради приватности.": "Automatically save copied text (excluding password fields). Off by default for privacy.",
         "Как отображаются кнопки навигации": "How navigation buttons are displayed",
         "Как получить ключ:": "How to get a key:",
         "Как получить ключ?": "How to get a key?",

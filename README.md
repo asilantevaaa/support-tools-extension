@@ -68,12 +68,29 @@ linter, a clipboard history, an in-browser translator, and more.
 
 ## 🛠 Tech
 
-- **Manifest V3** — background **service worker**, **content scripts**, offscreen
-  document, `chrome.storage`, `chrome.notifications`, `chrome.contextMenus`,
+- **Manifest V3** — background **service worker**, **content scripts**,
+  `chrome.storage`, `chrome.notifications`, `chrome.contextMenus`,
   `chrome.commands`, `chrome.scripting`.
 - Vanilla JavaScript, **~12k lines** of app code (no build step, no framework).
 - External APIs (pluggable): DNS-over-HTTPS, check-host.net, LanguageTool, a free
   translation endpoint, SecurityTrails, and an optional LLM API for text rewriting.
+
+## 🔒 Privacy & data handling
+
+- **Everything stays local.** All data — snippets, clipboard history, screenshots,
+  2FA secrets, saved settings and API keys — is kept in `chrome.storage.local` on
+  your machine. Nothing is sent to any server owned by this project (it has none).
+- **Network calls go only to the diagnostic APIs** you actually use (DNS-over-HTTPS,
+  check-host.net, translation, SecurityTrails, and any LLM endpoint you configure),
+  and only with the domain / text you explicitly submit.
+- **Clipboard auto-capture is opt-in.** It is **off by default** and can be enabled
+  in the **Clipboard** tab. When on, it saves copied text to local history but
+  **skips password and other sensitive fields**.
+- **Stored secrets are not encrypted at rest.** 2FA seeds and API keys live in
+  `chrome.storage.local` in plaintext (standard for extensions — Chrome does not
+  provide per-item encryption). Anyone with access to your OS user profile could
+  read them. Use it on a trusted machine and treat it like any other local
+  credential store.
 
 ## 🚀 Installation (load unpacked)
 
@@ -137,10 +154,25 @@ _Placeholders — add your own images to `docs/`._
 
 ### Технологии
 
-- **Manifest V3** — фоновый **service worker**, **content scripts**, offscreen-документ,
+- **Manifest V3** — фоновый **service worker**, **content scripts**,
   `chrome.storage`, `chrome.notifications`, `chrome.contextMenus`, `chrome.commands`,
   `chrome.scripting`.
 - Чистый JavaScript, **~12 000 строк** кода приложения (без сборки и фреймворков).
+
+### Приватность и данные
+
+- **Всё хранится локально.** Сниппеты, история буфера, скриншоты, 2FA-секреты,
+  настройки и API-ключи лежат в `chrome.storage.local` на твоей машине. Ни на
+  какой сервер проекта данные не уходят (его попросту нет).
+- **Сетевые запросы** идут только к тем диагностическим API, которыми ты
+  пользуешься (DoH, check-host.net, перевод, SecurityTrails, указанный тобой LLM),
+  и только с доменом/текстом, которые ты явно отправил.
+- **Автозахват буфера — по желанию.** По умолчанию **выключен**, включается на
+  вкладке **Буфер**. Во включённом виде сохраняет копируемый текст в локальную
+  историю, но **пропускает поля паролей и другие чувствительные поля**.
+- **Секреты хранятся без шифрования.** 2FA-сиды и API-ключи лежат в
+  `chrome.storage.local` в открытом виде (обычная практика для расширений — Chrome
+  не даёт пошаговое шифрование). Используй на доверенной машине.
 
 ### Установка (load unpacked)
 

@@ -807,6 +807,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const emptyEl = $('clip-empty'), countEl = $('clip-count'), statusEl = $('clip-status');
         const searchEl = $('clip-search'), exportBtn = $('clip-export');
         const subBtns = [...document.querySelectorAll('.clip-subbtn')];
+
+        // Auto-capture toggle (opt-in; off by default for privacy)
+        const autoEl = $('clip-autocapture');
+        if (autoEl) {
+            chrome.storage.local.get(['clipAutoCapture'], d => { autoEl.checked = d.clipAutoCapture === true; });
+            autoEl.addEventListener('change', () => {
+                chrome.storage.local.set({ clipAutoCapture: autoEl.checked });
+            });
+        }
+
         const MAX_ITEMS = 100;
         let items = [];
         let view = 'history'; // 'history' | 'saved'

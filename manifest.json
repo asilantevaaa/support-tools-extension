@@ -57,8 +57,12 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["editor.html", "editor.js", "editor-init.js", "fabric.min.js", "settings.html", "settings.js", "popup.html", "popup.js", "postpone-page.js"],
+      "resources": ["editor.html", "popup.html"],
       "matches": ["<all_urls>"]
+    },
+    {
+      "resources": ["postpone-page.js"],
+      "matches": ["https://staff.example.com/*"]
     }
   ],
   "content_scripts": [

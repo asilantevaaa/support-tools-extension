@@ -1,7 +1,8 @@
 /* clip-capture.js — автосохранение того, что копирует пользователь, в «Буфер».
    Слушает copy/cut на странице, берёт выделенный текст и отправляет в background,
    который кладёт его в историю (chrome.storage.local → clipItems).
-   Можно отключить в разделе «Буфер» (настройка clipAutoCapture). */
+   Opt-in: выключено по умолчанию, включается в разделе «Буфер» (clipAutoCapture).
+   Поля паролей и другие чувствительные поля не захватываются. */
 (function () {
   'use strict';
   if (typeof chrome === 'undefined' || !chrome.runtime || !chrome.storage) return;
@@ -9,11 +10,27 @@
   const DBG = false;
   const log = (...a) => { if (DBG) try { console.log('%c[Clip]', 'color:#4f6aff;font-weight:bold', ...a); } catch (e) {} };
 
-  let enabled = true;
-  chrome.storage.local.get(['clipAutoCapture'], d => { if ('clipAutoCapture' in d) enabled = d.clipAutoCapture !== false; });
+  // Privacy: auto-capture is OPT-IN. Off unless the user explicitly enables it
+  // in Settings → Clipboard. This avoids silently collecting everything the user
+  // copies (which could include passwords/tokens) on every page.
+  let enabled = false;
+  chrome.storage.local.get(['clipAutoCapture'], d => { enabled = d.clipAutoCapture === true; });
   chrome.storage.onChanged.addListener((c, area) => {
-    if (area === 'local' && c.clipAutoCapture) enabled = c.clipAutoCapture.newValue !== false;
+    if (area === 'local' && c.clipAutoCapture) enabled = c.clipAutoCapture.newValue === true;
   });
+
+  // Never capture from sensitive inputs (password fields and anything the page
+  // marks as sensitive via autocomplete tokens).
+  function isSensitiveTarget() {
+    try {
+      const el = document.activeElement;
+      if (!el) return false;
+      if (el.tagName === 'INPUT' && String(el.type).toLowerCase() === 'password') return true;
+      const ac = String(el.getAttribute && el.getAttribute('autocomplete') || '').toLowerCase();
+      if (/(^|\s)(current-password|new-password|one-time-code|cc-number|cc-csc)(\s|$)/.test(ac)) return true;
+    } catch (_) {}
+    return false;
+  }
 
   let lastText = '';
   let lastAt = 0;
@@ -43,7 +60,8 @@
   }
 
   function grab(e) {
-    if (!enabled) { log('пропуск: автозахват выключен'); return; }
+    if (!enabled) { log('skip: auto-capture disabled'); return; }
+    if (isSensitiveTarget()) { log('skip: sensitive field'); return; }
     const text = (selText(e) || '').trim();
     if (!text) { log('пусто — нечего сохранять'); return; }
     const now = Date.now();
