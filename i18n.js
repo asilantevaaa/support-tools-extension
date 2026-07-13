@@ -386,7 +386,8 @@
         "v=spf1 ip4:IP_ВАШЕГО_СЕРВЕРА ~all": "v=spf1 ip4:YOUR_SERVER_IP ~all", "Аккаунт": "Account",
         "Сбой отображения результата:": "Render failure:", "Сбой отображения:": "Render failure:",
         "в «Проверке домена»": "in \"Domain check\"", "не удалось выполнить на странице": "failed to run on the page",
-        "ip4: 203.0.113.10 (через запятую можно несколько)": "ip4: 203.0.113.10 (comma-separated allowed)"
+        "ip4: 203.0.113.10 (через запятую можно несколько)": "ip4: 203.0.113.10 (comma-separated allowed)",
+        "Скопировать все домены": "Copy all domains"
     };
 
     const getLang = () => { try { return localStorage.getItem('appLang') || 'en'; } catch (e) { return 'en'; } };
@@ -412,6 +413,7 @@
         [/Проверяю живой серт…/g, 'Checking the live cert…'],
         [/Смотрю историю выдач \(CT\)…/g, 'Viewing issuance history (CT)…'],
         [/Аккаунт не найден или нет доступа \(/g, 'Account not found or no access ('],
+        [/Найдено доменов: (\d+)/g, 'Domains found: $1'],
         [/(\d{4}) г\./g, '$1'],
         [/(\d )января/g, '$1January'], [/(\d )февраля/g, '$1February'], [/(\d )марта/g, '$1March'],
         [/(\d )апреля/g, '$1April'], [/(\d )мая/g, '$1May'], [/(\d )июня/g, '$1June'],
@@ -447,6 +449,8 @@
     window.__i18nLang = getLang;
 
     const start = () => {
+        // язык документа влияет на нативные контролы (формат <input type="date"> и т.п.)
+        try { document.documentElement.setAttribute('lang', getLang()); } catch (e) {}
         apply();
         let queued = false;
         try {
