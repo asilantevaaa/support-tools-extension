@@ -1974,19 +1974,22 @@ document.addEventListener('DOMContentLoaded', () => {
                                 st = badge(`OK${r.time != null ? ' ' + (r.time * 1000).toFixed(0) + 'ms' : ''}`, 'ok');
                             } else st = badge('ошибка', 'err');
                         } else { // http
+                            // reason/code приходят от проверяемого сервера — экранируем (защита от XSS в попапе)
+                            const eH = s => String(s == null ? '' : s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
                             const success = Array.isArray(r) && r[0] === 1;
-                            const code = Array.isArray(r) ? r[3] : null;
-                            const reason = Array.isArray(r) ? r[2] : null;
-                            if (success) { ok++; st = badge(`${code || ''} ${reason || 'OK'}`.trim(), 'ok'); }
+                            const code = eH(Array.isArray(r) ? r[3] : null);
+                            const reason = eH(Array.isArray(r) ? r[2] : null);
+                            if (success) { ok++; st = badge(`${code} ${reason || 'OK'}`.trim(), 'ok'); }
                             else st = badge(reason || code || 'ошибка', 'err');
                         }
                     }
-                    cards += `<div class="node-card"><div class="node-loc">${flag(cc)} ${city || cc}</div><div class="node-ip">${ip || ''}</div><div class="node-st">${st}</div></div>`;
+                    const eH = s => String(s == null ? '' : s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+                    cards += `<div class="node-card"><div class="node-loc">${flag(cc)} ${eH(city || cc)}</div><div class="node-ip">${eH(ip || '')}</div><div class="node-st">${st}</div></div>`;
                 }
                 const sum = total > 0
                     ? (ok === total ? badge(`✓ ${ok}/${total} точек`, 'ok') : badge(`${ok}/${total} точек`, 'warn'))
                     : badge('Нет данных', 'warn');
-                showCard('checkhost-info', `<div class="card-header"><div class="card-domain">${host}</div><div>${sum}</div></div>`);
+                showCard('checkhost-info', `<div class="card-header"><div class="card-domain">${String(host).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))}</div><div>${sum}</div></div>`);
                 document.getElementById('checkhost-nodes').innerHTML = cards;
             });
         }
