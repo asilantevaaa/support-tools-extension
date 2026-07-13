@@ -1,3 +1,9 @@
+// ── HTML-экранирование для вставки недоверенных данных (DNS/WHOIS/сеть) в innerHTML ──
+// Защита от XSS в привилегированном контексте расширения. Доступна глобально.
+function htmlEsc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
 // ── Глобальный перехват ошибок ──
 const showError = (msg, details = '') => {
     try {
@@ -1489,44 +1495,44 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!arr?.length) return '—';
             return `<div class="status-list">${arr.map(s => {
                 const clean = s.replace(/https?:\/\/\S+/g, '').trim();
-                return badge(clean, /prohibited|lock|transfer/i.test(s) ? 'ok' : 'warn');
+                return badge(htmlEsc(clean), /prohibited|lock|transfer/i.test(s) ? 'ok' : 'warn');
             }).join('')}</div>`;
         };
 
         const renderNs = (arr) =>
             arr?.length
-                ? arr.map(ns => `<div style="font-family:monospace;font-size:11px">${ns}</div>`).join('')
+                ? arr.map(ns => `<div style="font-family:monospace;font-size:11px">${htmlEsc(ns)}</div>`).join('')
                 : '—';
 
         // ── Построение HTML строго из стандартных ключей ─────────────────────
         let html = `<div class="card-header">
             <div>
-                <div class="card-domain">${dash(d.domain) !== '—' ? d.domain : domain}</div>
-                ${val(d.registrar_url) ? `<div class="card-sub">${d.registrar_url}</div>` : ''}
+                <div class="card-domain">${htmlEsc(dash(d.domain) !== '—' ? d.domain : domain)}</div>
+                ${val(d.registrar_url) ? `<div class="card-sub">${htmlEsc(d.registrar_url)}</div>` : ''}
             </div>
         </div>`;
 
-        html += row('Регистратор',        dash(d.registrar));
+        html += row('Регистратор',        htmlEsc(dash(d.registrar)));
         if (val(d.admin_contact)) {
             const ac = d.admin_contact;
             const isUrl = /^https?:\/\//i.test(ac);
             html += row('Admin contact', isUrl
-                ? `<a href="${ac}" target="_blank" style="color:var(--accent);word-break:break-all">${ac}</a>`
-                : `<span style="font-family:monospace;font-size:11px">${ac}</span>`);
+                ? `<a href="${htmlEsc(ac)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent);word-break:break-all">${htmlEsc(ac)}</a>`
+                : `<span style="font-family:monospace;font-size:11px">${htmlEsc(ac)}</span>`);
         }
-        html += row('Дата регистрации',   `<span style="color:var(--muted)">${fmt(d.created)}</span>`);
-        html += row('Последнее обновление', `<span style="color:var(--muted)">${fmt(d.updated)}</span>`);
-        html += row('Действует до',       `<strong style="color:${val(d.expires) ? 'var(--ok)' : 'var(--muted)'}">${fmt(d.expires)}</strong>`);
+        html += row('Дата регистрации',   `<span style="color:var(--muted)">${htmlEsc(fmt(d.created))}</span>`);
+        html += row('Последнее обновление', `<span style="color:var(--muted)">${htmlEsc(fmt(d.updated))}</span>`);
+        html += row('Действует до',       `<strong style="color:${val(d.expires) ? 'var(--ok)' : 'var(--muted)'}">${htmlEsc(fmt(d.expires))}</strong>`);
         html += `<div class="result-row"><span class="r-label">Статус</span><span class="r-value">${renderBadges(d.status)}</span></div>`;
         html += `<div class="result-row"><span class="r-label">Name Servers</span><span class="r-value">${renderNs(d.nameservers)}</span></div>`;
-        html += row('DNSSEC', `<span style="font-family:monospace;font-size:11px;color:var(--muted)">${dash(d.dnssec)}</span>`);
+        html += row('DNSSEC', `<span style="font-family:monospace;font-size:11px;color:var(--muted)">${htmlEsc(dash(d.dnssec))}</span>`);
 
         // Фолбэк: если совсем ничего нет — ссылка на whois.com
         if (!val(d.created) && !val(d.expires) && !d.nameservers?.length) {
             html += `<div class="result-row" style="padding:10px 12px">
                 <span class="r-value" style="color:var(--muted);font-size:11px">
                     Данные недоступны через API. →
-                    <a href="https://www.whois.com/whois/${domain}" target="_blank" style="color:var(--accent)">Открыть на whois.com</a>
+                    <a href="https://www.whois.com/whois/${encodeURIComponent(domain)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent)">Открыть на whois.com</a>
                 </span>
             </div>`;
         }
@@ -1629,8 +1635,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data.Answer?.length) {
             showCard('dns-result', data.Answer.map(r =>
                 `<div class="result-row">
-                    <span class="r-label" style="font-family:monospace;font-size:10px">${r.name.replace(/\.$/, '')}</span>
-                    <span class="r-value mono">${r.data}</span>
+                    <span class="r-label" style="font-family:monospace;font-size:10px">${htmlEsc(String(r.name).replace(/\.$/, ''))}</span>
+                    <span class="r-value mono">${htmlEsc(r.data)}</span>
                  </div>`
             ).join(''));
         } else {
@@ -1678,12 +1684,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!resp?.success) { propResult.innerHTML = row('Ошибка', resp?.error || 'нет ответа'); return; }
             const servers = resp.servers || [];
             const ok = servers.filter(s => s.ok).length;
-            let html = `<div class="card-header"><div class="card-domain">${domain} — ${type} · ${ok}/${servers.length} узлов</div></div>`;
+            let html = `<div class="card-header"><div class="card-domain">${htmlEsc(domain)} — ${type} · ${ok}/${servers.length} узлов</div></div>`;
             servers.forEach(s => {
                 const color = s.err ? 'var(--muted)' : s.ok ? 'inherit' : 'var(--err)';
                 const valsHtml = s.err || !s.ips?.length
                     ? '<span style="color:var(--muted)">—</span>'
-                    : s.ips.map(v => `<span class="mono" style="font-size:11px">${v}</span>`).join('<br>');
+                    : s.ips.map(v => `<span class="mono" style="font-size:11px">${htmlEsc(v)}</span>`).join('<br>');
                 html += `<div class="result-row" style="align-items:flex-start;padding:7px 12px">
                     <span class="r-label" style="font-size:11px;flex:none;max-width:48%">
                         ${s.flag} <b>${s.name}</b><br>
@@ -3310,16 +3316,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 const v = (x) => (x != null && x !== '') ? x : null;
                 const dash = (x) => v(x) || '—';
                 const badges = (arr) => !arr || !arr.length ? '—'
-                    : `<div class="status-list">${arr.map(s => badge(s.replace(/https?:\/\/\S+/g, '').trim(), /prohibited|lock|transfer/i.test(s) ? 'ok' : 'warn')).join('')}</div>`;
-                const ns = (arr) => arr && arr.length ? arr.map(x => `<div style="font-family:monospace;font-size:11px">${x}</div>`).join('') : '—';
-                let h = `<div class="card-header"><div><div class="card-domain">${dash(dd.domain) !== '—' ? dd.domain : domain}</div></div></div>`;
-                h += row('Регистратор', dash(dd.registrar));
-                h += row('Дата регистрации', `<span style="color:var(--muted)">${fmt(dd.created)}</span>`);
-                h += row('Последнее обновление', `<span style="color:var(--muted)">${fmt(dd.updated)}</span>`);
-                h += row('Действует до', `<strong style="color:${v(dd.expires) ? 'var(--ok)' : 'var(--muted)'}">${fmt(dd.expires)}</strong>`);
+                    : `<div class="status-list">${arr.map(s => badge(htmlEsc(s.replace(/https?:\/\/\S+/g, '').trim()), /prohibited|lock|transfer/i.test(s) ? 'ok' : 'warn')).join('')}</div>`;
+                const ns = (arr) => arr && arr.length ? arr.map(x => `<div style="font-family:monospace;font-size:11px">${htmlEsc(x)}</div>`).join('') : '—';
+                let h = `<div class="card-header"><div><div class="card-domain">${htmlEsc(dash(dd.domain) !== '—' ? dd.domain : domain)}</div></div></div>`;
+                h += row('Регистратор', htmlEsc(dash(dd.registrar)));
+                h += row('Дата регистрации', `<span style="color:var(--muted)">${htmlEsc(fmt(dd.created))}</span>`);
+                h += row('Последнее обновление', `<span style="color:var(--muted)">${htmlEsc(fmt(dd.updated))}</span>`);
+                h += row('Действует до', `<strong style="color:${v(dd.expires) ? 'var(--ok)' : 'var(--muted)'}">${htmlEsc(fmt(dd.expires))}</strong>`);
                 h += `<div class="result-row"><span class="r-label">Статус</span><span class="r-value">${badges(dd.status)}</span></div>`;
                 h += `<div class="result-row"><span class="r-label">Name Servers</span><span class="r-value">${ns(dd.nameservers)}</span></div>`;
-                h += row('DNSSEC', `<span style="font-family:monospace;font-size:11px;color:var(--muted)">${dash(dd.dnssec)}</span>`);
+                h += row('DNSSEC', `<span style="font-family:monospace;font-size:11px;color:var(--muted)">${htmlEsc(dash(dd.dnssec))}</span>`);
                 return h;
             };
 
