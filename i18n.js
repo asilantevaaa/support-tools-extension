@@ -191,10 +191,94 @@
         "✓ Сохранить": "✓ Save",
         "✓ Ссылка для клиента скопирована": "✓ Client link copied",
         "✓ скопировано": "✓ copied",
-        "Инструменты технической поддержки": "Support engineer's toolkit"
+        "Инструменты технической поддержки": "Support engineer's toolkit",
+
+        // — Языки переводчика —
+        "Русский": "Russian", "Английский": "English", "Украинский": "Ukrainian",
+        "Немецкий": "German", "Французский": "French", "Испанский": "Spanish",
+        "Итальянский": "Italian", "Португальский": "Portuguese", "Польский": "Polish",
+        "Турецкий": "Turkish", "Нидерландский": "Dutch", "Китайский": "Chinese",
+        "Японский": "Japanese", "Корейский": "Korean", "Арабский": "Arabic",
+        "Казахский": "Kazakh", "Белорусский": "Belarusian", "Узбекский": "Uzbek",
+        "Азербайджанский": "Azerbaijani", "Армянский": "Armenian", "Грузинский": "Georgian",
+        "Иврит": "Hebrew", "Хинди": "Hindi", "Определить язык": "Detect language",
+        "Определён:": "Detected:", "Перевожу…": "Translating…",
+        "Перевожу страницу… это может занять время": "Translating the page… this may take a while",
+        "Оригинал восстановлен": "Original restored",
+        "Текст для перевода не найден": "No text to translate found",
+        "Не удалось перевести": "Translation failed",
+        "Нельзя перевести служебную страницу. Открой обычный сайт.": "Can't translate a system page. Open a regular site.",
+
+        // — Генератор паролей —
+        "Слабый": "Weak", "Средний": "Medium", "Хороший": "Good", "Надёжный": "Strong",
+
+        // — Записи (DNS templates) —
+        "A-запись": "A record", "MX-запись": "MX record", "DKIM-запись (значение TXT)": "DKIM record (TXT value)",
+        "Новая запись": "New record", "Записи, по одной в строке": "Records, one per line",
+        "Значения, по одному в строке (IP, домен, текст...)": "Values, one per line (IP, domain, text...)",
+        "Название (например, ExampleHost)": "Name (e.g. ExampleHost)", "Название (необязательно)": "Name (optional)",
+        "Название шаблона": "Template name", "Mail.ru — мягкая": "Mail.ru — relaxed", "Mail.ru — строгая": "Mail.ru — strict",
+        "Универсальный (для всех)": "Universal (for all)", "Записей не найдено": "No records found",
+        "Редактировать": "Edit", "Копировать всё": "Copy all", "Копировать строку": "Copy row",
+        "задаётся сервисом (например us._domainkey)": "set by the service (e.g. us._domainkey)",
+        "для отправки с SMTP": "for sending via SMTP", "для отправки с php mail()": "for sending via php mail()",
+        "через серверы Beget (php mail() / локальный SMTP)": "via Beget servers (php mail() / local SMTP)",
+        "через сторонние SMTP": "via third-party SMTP", "1. Приватный ключ": "1. Private key", "2. Публичный ключ": "2. Public key",
+
+        // — 2FA —
+        "Название аккаунта:": "Account name:", "Нажмите, чтобы скопировать": "Click to copy",
+        "Ошибка импорта:": "Import error:", "QR-код не распознан": "QR code not recognized",
+        "Не найдено аккаунтов в QR": "No accounts found in the QR", "✓ Аккаунт добавлен": "✓ Account added",
+        "Пустой migration-QR": "Empty migration QR", "В QR нет otpauth-данных": "No otpauth data in the QR",
+        "Ошибка разбора QR:": "QR parse error:", "⏳ Распознаю QR...": "⏳ Recognizing QR...", "⏳ Сканирую экран...": "⏳ Scanning screen...",
+
+        // — Почта / стек —
+        "Конструктор": "Site builder", "Конструктор/CMS": "Site builder/CMS", "Фреймворк": "Framework",
+        "Хостинг": "Hosting", "Хостинг / дата-центр": "Hosting / data center", "Аналитика": "Analytics",
+        "CDN/прокси": "CDN/proxy", "Библиотека": "Library", "Прочее": "Other", "Облако": "Cloud",
+        "Чёрные списки": "Blacklists", "Проверяем DNS…": "Checking DNS…", "Опрашиваем резолверы…": "Querying resolvers…",
+        "Анализируем страницу…": "Analyzing the page…", "Запись v=spf1 не найдена": "v=spf1 record not found",
+        "Запись v=DMARC1 не найдена": "v=DMARC1 record not found",
+        "Не найден по популярным селекторам. Укажи селектор вручную, если знаешь.": "Not found by common selectors. Enter the selector manually if you know it.",
+
+        // — Whois / DNS / SSL —
+        "Дата регистрации": "Registration date", "Регистратор": "Registrar", "Действует до": "Valid until",
+        "Издатель": "Issuer", "Издатель (CA)": "Issuer (CA)", "Домены (SAN)": "Domains (SAN)",
+        "Серийный №": "Serial №", "Выдан": "Issued", "истёк": "expired", "Статус": "Status",
+        "Последнее обновление": "Last updated", "Проверено:": "Checked:", "История выдач (CT)": "Issuance history (CT)",
+        "SSL установлен правильно": "SSL is set up correctly", "рабочий SSL не обнаружен": "no working SSL detected",
+        "Запрашиваем DNS...": "Requesting DNS...", "Запрашиваем Whois...": "Requesting Whois...",
+        "Запрашиваем историю DNS...": "Requesting DNS history...", "Запрашиваем поддомены...": "Requesting subdomains...",
+
+        // — Общие статусы / кнопки —
+        "Готово.": "Done.", "Ошибка": "Error", "Ошибка:": "Error:", "Отмена (Esc)": "Cancel (Esc)",
+        "Не удалось выполнить запрос": "Request failed", "Нет данных": "No data", "нет данных": "no data",
+        "Нет ответа": "No response", "нет ответа": "no response", "Загружаем...": "Loading...",
+        "Загружаем страницу…": "Loading the page…", "Ищем…": "Searching…", "Собираю…": "Collecting…",
+        "Выполняем…": "Running…", "Запускаю…": "Starting…", "Остановлено.": "Stopped.", "Очищено": "Cleared",
+        "История пуста. Скопируй что-нибудь.": "History is empty. Copy something.",
+        "Нет сохранённых. Нажми ★ у записи в истории.": "Nothing saved. Tap ★ on an item in history.",
+        "Ничего не найдено.": "Nothing found.", "Открыть в новой вкладке": "Open in new tab",
+        "В сохранённое": "To saved", "Убрать из сохранённого": "Remove from saved", "Скриншотов нет": "No screenshots",
+        "Не удалось скопировать картинку в буфер": "Failed to copy the image to the clipboard",
+        "Нет активной вкладки": "No active tab", "Нет активной вкладки.": "No active tab.",
+        "нет": "no", "есть": "yes", "чисто": "clean", "в списке!": "listed!", "недоступен": "unavailable",
+        "не задан": "not set", "не найден": "not found", "не найдены": "not found", "показать": "show", "скрыть": "hide",
+        "активен": "active", "ок": "ok", "частично": "partial", "таймаут": "timeout", "ошибка": "error", "сейчас": "now",
+
+        // — Даты —
+        "день": "day", "дня": "days", "дней": "days", "дн.": "d", "мес.": "mo",
+        "января": "January", "февраля": "February", "марта": "March", "апреля": "April",
+        "мая": "May", "июня": "June", "июля": "July", "августа": "August",
+        "сентября": "September", "октября": "October", "ноября": "November", "декабря": "December"
     };
 
     const getLang = () => { try { return localStorage.getItem('appLang') || 'ru'; } catch (e) { return 'ru'; } };
+
+    // нормализованная карта (схлопнутые пробелы) — на случай двойных пробелов/переносов
+    const NORM = {};
+    for (const k in DICT) NORM[k.replace(/\s+/g, ' ').trim()] = DICT[k];
+    const lookup = (s) => DICT[s] || NORM[s.replace(/\s+/g, ' ').trim()];
 
     function translate(root) {
         if (getLang() !== 'en' || !root) return;
@@ -204,12 +288,14 @@
         for (const node of nodes) {
             const raw = node.nodeValue;
             const t = raw.trim();
-            if (t && DICT[t]) node.nodeValue = raw.replace(t, DICT[t]);
+            if (!t) continue;
+            const tr = lookup(t);
+            if (tr) node.nodeValue = raw.replace(t, tr);
         }
         root.querySelectorAll('[placeholder],[title]').forEach(el => {
             ['placeholder', 'title'].forEach(a => {
                 const v = el.getAttribute(a);
-                if (v && DICT[v.trim()]) el.setAttribute(a, DICT[v.trim()]);
+                if (v) { const tr = lookup(v.trim()); if (tr) el.setAttribute(a, tr); }
             });
         });
     }
