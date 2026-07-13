@@ -25,7 +25,7 @@
 
     // ── Язык интерфейса / UI language ────────────────────────────────────
     (function initLang() {
-        const cur = localStorage.getItem('appLang') || 'ru';
+        const cur = localStorage.getItem('appLang') || 'en';
         const ruBtn = document.getElementById('lang-ru-btn');
         const enBtn = document.getElementById('lang-en-btn');
         if (!ruBtn || !enBtn) return;

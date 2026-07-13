@@ -264,59 +264,6 @@ chrome.commands.onCommand.addListener((command) => {
     });
 });
 
-// ── Авто-запуск пользовательских скриптов (Tampermonkey-style) ──────────────
-(function setupUserScriptAutorun() {
-    const parseMatchPatterns = (code) => {
-        const patterns = [];
-        const block = (code || '').match(/\/\/\s*==UserScript==([\s\S]*?)\/\/\s*==\/UserScript==/);
-        if (!block) return patterns;
-        for (const line of block[1].split('\n')) {
-            const m = line.match(/\/\/\s*@(?:match|include)\s+(.*)/);
-            if (m) patterns.push(m[1].trim());
-        }
-        return patterns;
-    };
-
-    const urlMatchesPattern = (url, pattern) => {
-        try {
-            if (pattern === '<all_urls>' || pattern === '*') return true;
-            // Chrome match pattern: scheme://host/path — конвертируем в RegExp
-            const esc = pattern
-                .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
-                .replace(/\\\*/g, '.*');
-            return new RegExp('^' + esc + '$').test(url);
-        } catch { return false; }
-    };
-
-    chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-        if (changeInfo.status !== 'complete') return;
-        const url = tab.url || '';
-        if (!url || url.startsWith('chrome://') || url.startsWith('chrome-extension://')) return;
-        try {
-            const data = await chrome.storage.local.get(['userScripts']);
-            const list = data.userScripts;
-            if (!Array.isArray(list) || !list.length) return;
-            for (const sc of list) {
-                if (!sc.enabled || !sc.code) continue;
-                const patterns = parseMatchPatterns(sc.code);
-                if (!patterns.length) continue; // без @match — не авто
-                const shouldRun = patterns.some(p => urlMatchesPattern(url, p));
-                if (!shouldRun) continue;
-                chrome.scripting.executeScript({
-                    target: { tabId },
-                    func: (src, name) => {
-                        const tag = document.createElement('script');
-                        tag.textContent = `(function(){try{\n${src}\n}catch(e){console.error('[UserScript:'+${JSON.stringify(name || '?')}+']',e)}})()`;
-                        (document.head || document.documentElement).appendChild(tag);
-                        tag.remove();
-                    },
-                    args: [sc.code, sc.name || '?']
-                }).catch(() => {});
-            }
-        } catch (e) {}
-    });
-})();
-
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     // --- Запуск скриншота из попапа (попап закрывается, поэтому инжектим из BG) ---

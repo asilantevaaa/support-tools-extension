@@ -351,10 +351,38 @@
         "✓ Ключ сохранён": "✓ Key saved", "✓ Настройки сохранены": "✓ Settings saved", "API-ключ": "API key",
         "Chrome API недоступен": "Chrome API unavailable",
         "или": "or", "найдено": "found", "ожидание": "pending", "осталось": "left", "через": "in",
-        "проверить": "check", "рус": "ru"
+        "проверить": "check", "рус": "ru",
+
+        // — Редактор скриншотов —
+        "Курсор (V)": "Cursor (V)", "Карандаш — фигуры автораспознаются (P)": "Pencil — shapes auto-recognized (P)",
+        "Прямоугольник (R)": "Rectangle (R)", "Линия (L)": "Line (L)", "Стрелка (A)": "Arrow (A)",
+        "Текст (T)": "Text (T)", "Размытие (B)": "Blur (B)", "Обрезать (C)": "Crop (C)",
+        "Кружок-цифра (1-9). Номер выбирается в поле рядом": "Numbered circle (1-9). Pick the number in the field nearby",
+        "Номер кружка": "Circle number", "Удалить (Del)": "Delete (Del)", "Отменить (Ctrl+Z)": "Undo (Ctrl+Z)",
+        "Повторить (Ctrl+Y)": "Redo (Ctrl+Y)", "Применить обрезку": "Apply crop", "Закрыть (Esc)": "Close (Esc)",
+        "Копировать (Ctrl+Enter)": "Copy (Ctrl+Enter)", "Сохранить PNG": "Save PNG",
+        "Свой цвет": "Custom color", "Текст на белом фоне": "Text on white background",
+        "Шрифт текста": "Text font", "Фон": "Background", "Сервис": "Service",
+        "Ошибка буфера обмена.": "Clipboard error.", "Ошибка создания скриншота:": "Screenshot creation error:",
+        "неизвестная ошибка": "unknown error", "Выбери хотя бы один набор символов.": "Select at least one character set.",
+
+        // — Длинные подсказки —
+        "Источник: Certificate Transparency (certspotter, резерв — crt.sh) — выданные сертификаты домена.": "Source: Certificate Transparency (certspotter, fallback — crt.sh) — certificates issued for the domain.",
+        "Mixed content — небезопасные HTTP-ресурсы на HTTPS-странице (из-за них «замок» не зелёный). Проверяется домен из поля выше.": "Mixed content — insecure HTTP resources on an HTTPS page (they keep the padlock from turning green). The domain from the field above is checked.",
+        "Тянет SPF, DKIM, DMARC, MX, A, rDNS и проверяет IP по чёрным спискам — без отправки письма и без лимитов.": "Pulls SPF, DKIM, DMARC, MX, A, rDNS and checks the IP against blacklists — without sending an email and without limits.",
+        "Определяет CMS, конструктор, фреймворк, хостинг, аналитику и др. по текущей открытой вкладке.": "Detects CMS, site builder, framework, hosting, analytics, etc. from the current tab.",
+        "Нажми «Проверить» на странице сервиса — увидишь отчёт (SPF, DKIM, DMARC, rDNS, blacklist, спам-оценка)": "Click \"Check\" on the service page — you'll see a report (SPF, DKIM, DMARC, rDNS, blacklist, spam score)",
+        "DKIM-подпись: base64, PEM (-----BEGIN PUBLIC KEY-----) или готовая запись — уберём переносы и лишнее сами": "DKIM signature: base64, PEM (-----BEGIN PUBLIC KEY-----) or a ready record — we'll strip line breaks and extras automatically",
+        "leaderssl не подтвердил рабочий сертификат (нет HTTPS, ошибка соединения или серт не отдаётся).": "leaderssl didn't confirm a working certificate (no HTTPS, connection error, or the cert isn't served).",
+        "Доменов не найдено. Откройте список сертификатов («показать все») либо страницу тикета/карты клиента с доменами.": "No domains found. Open the certificate list (\"show all\") or a ticket / client card page containing domains.",
+        "Линтер работает на стороне клиента в реальном времени. Волнистое подчеркивание слов прямо в полях ввода показывает стилистические и орфографические ошибки.": "The linter runs client-side in real time. Wavy underlines directly in input fields highlight style and spelling issues.",
+        "Проверка орфографии, пунктуации и грамматики через сервис LanguageTool. Текст отправляется на api.languagetool.org": "Spelling, punctuation and grammar checking via LanguageTool. Text is sent to api.languagetool.org",
+        "из Google Authenticator: в приложении «Экспорт аккаунтов» → сохраните QR → загрузите картинку сюда.": "from Google Authenticator: in the app use \"Export accounts\" → save the QR → upload the image here.",
+        "Генерация DKIM для php mail()": "Generate DKIM for php mail()", "DKIM-запись": "DKIM record",
+        "Скопировано:": "Copied:", "Скопировано": "Copied", "обычно (зависит от панели)": "usually (depends on the panel)"
     };
 
-    const getLang = () => { try { return localStorage.getItem('appLang') || 'ru'; } catch (e) { return 'ru'; } };
+    const getLang = () => { try { return localStorage.getItem('appLang') || 'en'; } catch (e) { return 'en'; } };
 
     // нормализованная карта (схлопнутые пробелы) — на случай двойных пробелов/переносов
     const NORM = {};
@@ -371,6 +399,11 @@
         [/\b1 день\b/g, '1 day'],
         [/(\d+) (?:дня|дней|день)/g, '$1 days'],
         [/Скопировано \(/g, 'Copied ('],
+        [/\(CT · ([^)]+)\)\. Найдено: (\d+), действующих: (\d+)\. Первый — самый свежий\./g, '(CT · $1). Found: $2, valid: $3. Newest first.'],
+        [/Сертификаты для /g, 'Certificates for '],
+        [/Новая запись \(([^)]+)\)/g, 'New record ($1)'],
+        [/Проверяю живой серт…/g, 'Checking the live cert…'],
+        [/Смотрю историю выдач \(CT\)…/g, 'Viewing issuance history (CT)…'],
         [/(\d{4}) г\./g, '$1'],
         [/(\d )января/g, '$1January'], [/(\d )февраля/g, '$1February'], [/(\d )марта/g, '$1March'],
         [/(\d )апреля/g, '$1April'], [/(\d )мая/g, '$1May'], [/(\d )июня/g, '$1June'],
