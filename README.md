@@ -23,19 +23,17 @@ linter, a clipboard history, an in-browser translator, and more.
   Punycode ⇄ Unicode, subdomain lookup (SecurityTrails).
 - **Mail authentication** — SPF / DKIM / DMARC / MX / A / rDNS lookups and DNSBL
   blacklist checks over DNS-over-HTTPS, plus DKIM key normalization and DMARC templates.
-- **SSL tools** — mixed-content scanner for HTTPS pages and bulk certificate-request
-  automation (create / renew from a list).
+- **SSL tools** — mixed-content scanner for HTTPS pages and Certificate Transparency
+  lookup for a domain.
 - **Website tech detector** — Wappalyzer-style stack detection (CMS, frameworks,
   hosting, analytics) for the current tab.
-- **Text linter** — LanguageTool integration plus custom corporate style rules,
+- **Text linter** — LanguageTool integration plus custom spelling / typography rules,
   inline on editable fields.
 - **Translator** — free text translation (24 languages, auto-detect) and whole-page
   in-place translation with a one-click restore.
-- **Clipboard buffer** — auto-captured copy history + saved items, image capture via
+- **Clipboard buffer** — opt-in copy history + saved items, image capture via
   context menu, search, and ZIP export of screenshots.
 - **Password generator** — cryptographically secure, configurable charset, strength meter.
-- **Ticket notifications** — sound + desktop notification when a new item lands in a
-  work queue, with a quiet-threshold and selectable tones (offscreen audio).
 - **Bilingual UI (RU / EN)** — a language switch in Settings with a lightweight runtime
   translation layer.
 - **Quality-of-life** — password/date helpers, quick-paste templates, a URL shortener
@@ -47,22 +45,19 @@ linter, a clipboard history, an in-browser translator, and more.
 | Module | Role |
 | --- | --- |
 | `manifest.json` | MV3 manifest — permissions, content scripts, commands |
-| `background.js` | Service worker: message router, context menus, external API calls, offscreen audio, hotkeys |
+| `background.js` | Service worker: message router, context menus, external API calls, hotkeys |
 | `popup.html` / `popup.js` | Main popup UI and all tab logic (~5.5k lines) |
-| `settings.html` / `settings.js` | Options page (tabs order, theme, notifications, integrations) |
+| `settings.html` / `settings.js` | Options page (tabs order, theme, language, integrations) |
+| `i18n.js` | Runtime RU / EN translation layer |
 | `content.js` | Screenshot region-selection overlay |
 | `editor.html` / `editor.js` / `editor-init.js` / `fabric.min.js` | Canvas screenshot editor |
-| `offscreen.html` / `offscreen.js` | Offscreen document for autoplay notification audio |
-| `clip-capture.js` | Clipboard history auto-capture (content script) |
+| `clip-capture.js` | Clipboard history auto-capture (content script, opt-in) |
 | `domain-watch.js` | Auto-fill selected domain into tool inputs |
-| `dark-theme.js` | Dark theme injector for work sites |
+| `dark-theme.js` | Dark theme injector |
 | `float-panel.js` | Detachable, resizable floating panel |
 | `linter-hybrid.js` | Hybrid text linter (LanguageTool + custom rules) |
 | `paste-quick.js` | Quick-paste template saving |
 | `postpone-quick.js` / `postpone-page.js` | Date/time helpers (timezone-aware) |
-| `ssl-requests.js` | Bulk SSL certificate-request automation (content script) |
-| `ticket-watch.js` | New-item queue notifications (content script) |
-| `employees2-ignore.js` | Bulk form automation helper (content script) |
 | `libs/otpauth.umd.min.js` | TOTP generation (third-party) |
 | `libs/jsQR.min.js` | QR decoding for 2FA import (third-party) |
 
@@ -135,18 +130,16 @@ _Placeholders — add your own images to `docs/`._
   Punycode ⇄ Unicode, поддомены (SecurityTrails).
 - **Почтовая аутентификация** — SPF/DKIM/DMARC/MX/A/rDNS и чёрные списки (DNSBL) через
   DNS-over-HTTPS, нормализация DKIM-ключа, шаблоны DMARC.
-- **SSL** — поиск mixed content на HTTPS-странице и массовые заявки на сертификаты
-  (создание/продление списком).
+- **SSL** — поиск mixed content на HTTPS-странице и проверка домена по логам
+  Certificate Transparency.
 - **Детектор технологий сайта** — определение стека (CMS, фреймворки, хостинг,
   аналитика) по текущей вкладке, аналог Wappalyzer.
-- **Линтер текста** — LanguageTool + корпоративные правила стиля, прямо в полях ввода.
+- **Линтер текста** — LanguageTool + собственные правила орфографии и типографики, прямо в полях ввода.
 - **Переводчик** — бесплатный перевод текста (24 языка, автоопределение) и перевод всей
   страницы на месте с откатом к оригиналу.
-- **Буфер обмена** — авто-история копирований + сохранённое, захват картинок через
+- **Буфер обмена** — опциональная авто-история копирований + сохранённое, захват картинок через
   контекстное меню, поиск и экспорт скриншотов в ZIP.
 - **Генератор паролей** — криптостойкий, настраиваемый набор символов, индикатор надёжности.
-- **Уведомления о новых заявках** — звук и всплывающее уведомление при появлении новой
-  задачи в очереди, с порогом тишины и выбором звука (offscreen audio).
 - **Двуязычный интерфейс (RU / EN)** — переключатель языка в настройках с лёгким
   слоем перевода на лету.
 - **Мелочи** — помощники по датам, быстрые пасты, клиент сокращателя ссылок (YOURLS),
@@ -158,6 +151,27 @@ _Placeholders — add your own images to `docs/`._
   `chrome.storage`, `chrome.notifications`, `chrome.contextMenus`, `chrome.commands`,
   `chrome.scripting`.
 - Чистый JavaScript, **~12 000 строк** кода приложения (без сборки и фреймворков).
+
+### 🧩 Карта модулей
+
+| Модуль | Роль |
+| --- | --- |
+| `manifest.json` | Манифест MV3 — разрешения, content-скрипты, команды |
+| `background.js` | Service worker: маршрутизация сообщений, контекстное меню, вызовы внешних API, горячие клавиши |
+| `popup.html` / `popup.js` | Основной UI попапа и логика всех вкладок (~5,5 тыс. строк) |
+| `settings.html` / `settings.js` | Страница настроек (порядок вкладок, тема, язык, интеграции) |
+| `i18n.js` | Слой перевода интерфейса на лету (RU / EN) |
+| `content.js` | Оверлей выделения области для скриншота |
+| `editor.html` / `editor.js` / `editor-init.js` / `fabric.min.js` | Canvas-редактор скриншотов |
+| `clip-capture.js` | Авто-история буфера (content-скрипт, opt-in) |
+| `domain-watch.js` | Автоподстановка выделенного домена в поля инструментов |
+| `dark-theme.js` | Инъекция тёмной темы |
+| `float-panel.js` | Открепляемая плавающая панель с изменяемым размером |
+| `linter-hybrid.js` | Гибридный линтер текста (LanguageTool + свои правила) |
+| `paste-quick.js` | Сохранение шаблонов для быстрой вставки |
+| `postpone-quick.js` / `postpone-page.js` | Помощники по дате/времени (с учётом часовых поясов) |
+| `libs/otpauth.umd.min.js` | Генерация TOTP (стороннее) |
+| `libs/jsQR.min.js` | Декодирование QR для импорта 2FA (стороннее) |
 
 ### Приватность и данные
 
